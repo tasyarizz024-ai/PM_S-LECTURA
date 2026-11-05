@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+
+# Locally uploaded profile images
+/assets/img/dosen/dosen_*.jpg
+
+# Local tooling and generated files
+.DS_Store
+Thumbs.db
+*.log

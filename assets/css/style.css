@@ -1,0 +1,620 @@
+/* ==============================================================
+   S-LECTURA - Politeknik Negeri Lampung
+   Gaya Kustom & Identitas Visual Polinela
+   File: assets/css/style.css
+   ============================================================== */
+
+:root {
+    font-size: 15px;
+    --polinela-green: #107C41;
+    --polinela-dark: #0B562D;
+    --polinela-light: #E8F5E9;
+    --polinela-bg: #F8FAF9;
+    --polinela-accent: #E5A823;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background:
+        radial-gradient(circle at 8% 2%, rgba(16, 124, 65, 0.045), transparent 25rem),
+        var(--polinela-bg);
+    color: #2D3748;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+/* Navigasi Utama */
+.navbar-polinela {
+    background: linear-gradient(120deg, #117b43 0%, #0b562d 100%);
+    box-shadow: 0 6px 24px rgba(6, 48, 27, 0.18);
+    z-index: 1030;
+}
+
+.navbar-polinela .navbar-brand {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #FFFFFF !important;
+}
+
+.site-brand-logo {
+    display: block;
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.18));
+}
+
+.site-brand-logo-footer {
+    width: 44px;
+    height: 44px;
+}
+
+.site-brand-copy {
+    font-size: 0.92rem;
+    line-height: 1.15;
+}
+
+.site-brand-copy > span:last-child {
+    font-size: 0.7rem;
+}
+
+.navbar-polinela .navbar-toggler {
+    border-radius: 10px;
+    transition: background-color 0.18s ease, transform 0.18s ease;
+}
+
+.navbar-polinela .navbar-toggler:hover,
+.navbar-polinela .navbar-toggler:focus-visible {
+    background-color: rgba(255, 255, 255, 0.14);
+}
+
+.navbar-polinela .nav-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: color 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
+}
+
+.navbar-polinela .nav-link:hover,
+.navbar-polinela .nav-link.active {
+    color: #FFFFFF !important;
+    background-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
+}
+
+.navbar-polinela .user-menu-toggle {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.11);
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+}
+
+.navbar-polinela .user-menu-toggle:hover,
+.navbar-polinela .user-menu-toggle[aria-expanded="true"] {
+    border-color: rgba(255, 255, 255, 0.42);
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.navbar-polinela .user-menu-toggle.dropdown-toggle::after {
+    display: none;
+}
+
+.user-menu-caret {
+    flex: 0 0 auto;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.78rem;
+    transition: transform 0.18s ease;
+}
+
+.user-menu-toggle[aria-expanded="true"] .user-menu-caret {
+    transform: rotate(180deg);
+}
+
+/* Tombol Berwarna Polinela */
+.btn-polinela {
+    background: linear-gradient(135deg, #13834a, var(--polinela-dark));
+    border-color: var(--polinela-green);
+    color: #FFFFFF;
+    font-weight: 600;
+    box-shadow: 0 5px 13px rgba(16, 124, 65, 0.2);
+    transition: transform 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
+}
+
+.btn-polinela:hover,
+.btn-polinela:focus {
+    background-color: var(--polinela-dark);
+    border-color: var(--polinela-dark);
+    color: #FFFFFF;
+    box-shadow: 0 7px 17px rgba(11, 86, 45, 0.27);
+    transform: translateY(-1px);
+}
+
+.btn-outline-polinela {
+    border-color: var(--polinela-green);
+    color: var(--polinela-green);
+    font-weight: 600;
+}
+
+.btn-outline-polinela:hover {
+    background-color: var(--polinela-green);
+    color: #FFFFFF;
+}
+
+/* Kartu Profil & Konten */
+.card-custom {
+    border: none;
+    border-radius: 16px;
+    background: #FFFFFF;
+    box-shadow: 0 7px 24px rgba(28, 52, 39, 0.065);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.card-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(16, 76, 43, 0.11);
+}
+
+.card-header-polinela {
+    background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%);
+    border-bottom: 1px solid rgba(16, 124, 65, 0.15);
+    font-weight: 600;
+    color: var(--polinela-dark);
+    border-top-left-radius: 12px !important;
+    border-top-right-radius: 12px !important;
+}
+
+/* Avatar Inisial Dosen */
+.avatar-initial {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--polinela-light), #C8E6C9);
+    color: var(--polinela-dark);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.5rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.avatar-initial-sm {
+    width: 38px;
+    height: 38px;
+    font-size: 1rem;
+}
+
+.avatar-initial-lg {
+    width: 90px;
+    height: 90px;
+    font-size: 2.2rem;
+}
+
+/* Badge Status Ketersediaan */
+.badge-status {
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.4em 0.75em;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Stat Box (Dashboard Admin & Dosen) */
+.stat-card {
+    border-radius: 18px;
+    border: none;
+    padding: 1.25rem;
+    color: #FFFFFF;
+    box-shadow: 0 9px 22px rgba(22, 43, 31, 0.12);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 28px rgba(22, 43, 31, 0.18);
+}
+
+.stat-card .stat-icon {
+    position: absolute;
+    right: 15px;
+    bottom: 10px;
+    font-size: 3.5rem;
+    opacity: 0.2;
+}
+
+/* Hero Section */
+.hero-banner {
+    background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+    border-radius: 20px;
+    padding: 2.5rem 2rem;
+    margin-bottom: 2rem;
+    border-left: 6px solid var(--polinela-green);
+}
+
+/* Footer */
+footer {
+    background-color: #1A202C;
+    color: #A0AEC0;
+}
+
+footer a {
+    color: #CBD5E0;
+    text-decoration: none;
+}
+
+footer a:hover {
+    color: #FFFFFF;
+    text-decoration: underline;
+}
+
+/* Interaction feedback, focus visibility, and form consistency */
+.btn,
+.nav-link,
+.dropdown-item,
+.page-link {
+    transition: color 0.16s ease, background-color 0.16s ease, border-color 0.16s ease,
+        box-shadow 0.16s ease, transform 0.16s ease;
+}
+
+.btn:active,
+.page-link:active {
+    transform: translateY(1px) scale(0.985);
+}
+
+.btn:focus-visible,
+.nav-link:focus-visible,
+.dropdown-item:focus-visible,
+.page-link:focus-visible {
+    outline: 3px solid rgba(229, 168, 35, 0.62);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 0.2rem rgba(16, 124, 65, 0.14);
+}
+
+.form-control:focus-visible,
+.form-select:focus-visible,
+.form-check-input:focus-visible {
+    outline: 2px solid rgba(16, 124, 65, 0.45);
+    outline-offset: 1px;
+}
+
+.form-control,
+.form-select {
+    border-color: #d8e2dc;
+    border-radius: 10px;
+    transition: border-color 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #53a877;
+    box-shadow: 0 0 0 0.22rem rgba(16, 124, 65, 0.13);
+}
+
+.table {
+    --bs-table-hover-bg: rgba(16, 124, 65, 0.045);
+}
+
+.table thead th {
+    color: #47574d;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.025em;
+    white-space: nowrap;
+}
+
+.alert,
+.dropdown-menu,
+.modal-content {
+    border-radius: 14px;
+}
+
+.dropdown-menu {
+    box-shadow: 0 12px 30px rgba(24, 44, 32, 0.13) !important;
+}
+
+.login-page {
+    background: #0c3020;
+}
+
+.login-main {
+    position: relative;
+    display: flex;
+    min-height: 0;
+    flex: 1 0 auto;
+    align-items: center;
+    overflow: hidden;
+    padding: 2rem 0 3rem;
+    isolation: isolate;
+    background: #0c3020;
+}
+
+.login-flash {
+    position: absolute;
+    z-index: 4;
+    top: 1rem;
+    left: 50%;
+    width: min(100% - 2rem, 1140px);
+    transform: translateX(-50%);
+}
+
+.login-carousel,
+.login-carousel-shade {
+    position: absolute;
+    inset: 0;
+}
+
+.login-carousel {
+    z-index: -2;
+}
+
+.login-carousel .carousel-inner,
+.login-carousel .carousel-item {
+    height: 100%;
+}
+
+.login-carousel .carousel-item img {
+    object-fit: cover;
+    object-position: center;
+    animation: login-image-settle 8s ease-in-out both;
+}
+
+.login-carousel-shade {
+    z-index: 1;
+    background:
+        linear-gradient(90deg, rgba(5, 37, 22, 0.84) 0%, rgba(5, 37, 22, 0.61) 48%, rgba(5, 37, 22, 0.42) 100%),
+        linear-gradient(0deg, rgba(4, 33, 20, 0.42), transparent 55%);
+    pointer-events: none;
+}
+
+.login-carousel .carousel-indicators {
+    z-index: 2;
+    justify-content: flex-start;
+    width: min(1140px, calc(100% - 3rem));
+    margin: 0 auto 1.3rem;
+}
+
+.login-carousel .carousel-indicators [data-bs-target] {
+    width: 30px;
+    height: 4px;
+    border: 0;
+    border-radius: 10px;
+    opacity: 0.55;
+}
+
+.login-carousel .carousel-indicators .active {
+    width: 48px;
+    opacity: 1;
+}
+
+.login-content {
+    position: relative;
+    z-index: 2;
+}
+
+.login-intro {
+    max-width: 600px;
+    padding: 2rem 1rem 2rem 0;
+    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.22);
+}
+
+.login-intro h1 {
+    font-size: clamp(2.35rem, 3.8vw, 3.35rem);
+    line-height: 1.12;
+}
+
+.login-intro .lead {
+    max-width: 520px;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.login-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.65rem 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    backdrop-filter: blur(8px);
+}
+
+.login-card {
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.97);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(12px);
+}
+
+.login-card .card-body {
+    padding: 2rem !important;
+}
+
+.login-brand-logo {
+    display: inline-block;
+    width: 96px;
+    height: 96px;
+    object-fit: contain;
+}
+
+.login-brand-name {
+    margin-top: 0.3rem;
+    color: var(--polinela-dark);
+    font-size: 1.3rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+}
+
+.login-page footer {
+    background: #11251b;
+}
+
+@keyframes login-image-settle {
+    from { transform: scale(1.035); }
+    to { transform: scale(1); }
+}
+
+@media (max-width: 991.98px) {
+    .login-main {
+        padding: 1.75rem 0 3rem;
+    }
+
+    .login-carousel-shade {
+        background: linear-gradient(120deg, rgba(5, 37, 22, 0.68), rgba(5, 37, 22, 0.46));
+    }
+}
+
+@media (max-width: 575.98px) {
+    .site-brand-logo {
+        width: 40px;
+        height: 40px;
+    }
+
+    .site-brand-copy {
+        font-size: 0.82rem;
+    }
+
+    .site-brand-copy > span:last-child {
+        font-size: 0.62rem;
+    }
+
+    .login-main {
+        padding: 1rem 0 2.25rem;
+    }
+
+    .login-card {
+        border-radius: 18px;
+    }
+
+    .login-card .card-body {
+        padding: 1.5rem !important;
+    }
+
+    .login-carousel .carousel-indicators {
+        justify-content: center;
+    }
+}
+
+@media (max-height: 760px) {
+    .login-main {
+        padding-top: 0.75rem;
+        padding-bottom: 1rem;
+    }
+
+    .login-intro {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+
+    .login-intro h1 {
+        margin-top: 1.25rem !important;
+        margin-bottom: 0.75rem !important;
+        font-size: clamp(2rem, 3.4vw, 2.8rem);
+    }
+
+    .login-card .card-body {
+        padding: 1.25rem !important;
+    }
+
+    .login-brand-logo {
+        width: 64px;
+        height: 64px;
+    }
+
+    .login-card .text-center.mb-4 {
+        margin-bottom: 1rem !important;
+    }
+
+    .login-card .login-brand-name {
+        font-size: 1.1rem;
+    }
+
+    .login-card .login-brand-name + h2 {
+        margin-top: 0.5rem !important;
+        margin-bottom: 0.15rem !important;
+        font-size: 1.25rem;
+    }
+
+    .login-card .login-brand-name {
+        margin-top: 0.15rem;
+        font-size: 1rem;
+    }
+
+    .login-card .login-brand-name + h2 + p {
+        margin-bottom: 0;
+        font-size: 0.82rem;
+    }
+
+    .login-card form .mb-4 {
+        margin-bottom: 0.65rem !important;
+    }
+
+    .login-card form .mb-3 {
+        margin-bottom: 0.65rem !important;
+    }
+
+    .login-card form .form-control {
+        padding-top: 0.4rem !important;
+        padding-bottom: 0.4rem !important;
+    }
+
+    .login-card .border-top.mt-4 {
+        margin-top: 0.65rem !important;
+        padding-top: 0.5rem !important;
+    }
+
+    .login-card .border-top p {
+        font-size: 0.78rem;
+    }
+
+    .login-flash {
+        top: 0.5rem;
+    }
+
+    .login-carousel .carousel-indicators {
+        margin-bottom: 0.6rem;
+    }
+
+    .login-page footer {
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+    }
+
+    .login-page footer .small,
+    .login-page footer .small span {
+        font-size: 0.72rem !important;
+        line-height: 1.35;
+    }
+
+    .login-page footer .col-md-6:first-child > p,
+    .login-page footer .col-md-6:last-child > p:last-child {
+        display: none;
+    }
+
+    .login-page footer .site-brand-logo-footer {
+        width: 34px;
+        height: 34px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

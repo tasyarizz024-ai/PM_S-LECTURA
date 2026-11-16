@@ -96,6 +96,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $errors[] = $exception->getMessage();
                 }
             }
+        } elseif ($action === 'create_user') {
+            $accountRole = (string)($_POST['account_role'] ?? '');
+            if (!in_array($accountRole, ['mahasiswa', 'dosen'], true)) {
+                $errors[] = 'Pilih jenis akun mahasiswa atau dosen.';
+            } elseif ($selectedProdi <= 0) {
+                $errors[] = 'Pilih program studi sebelum menambahkan akun.';
+            } else {
+                $row = [
+                    '_row_number' => 1,
+                    'nama' => trim($_POST['nama'] ?? ''),
+                    'email' => trim($_POST['email'] ?? ''),
+                    'npm' => trim($_POST['npm'] ?? ''),
+                    'nidn_nip' => trim($_POST['nidn_nip'] ?? ''),
+                    'bidang_keahlian' => trim($_POST['bidang_keahlian'] ?? ''),
+                    'tanggal_lahir' => trim($_POST['tanggal_lahir'] ?? ''),
+                ];
+                $result = validate_user_import($pdo, [$row], $selectedProdi, $accountRole);
+                $errors = $result['errors'];
+                if (!$errors) {
+                    try {
+                        $pdo->beginTransaction();
+                        $credentials = insert_user_import($pdo, $result['rows'], $selectedProdi);
+                        $pdo->commit();
+                        $_SESSION['user_import_credentials'] = $credentials;
+                        set_flash('success', 'Akun berhasil dibuat. Simpan sandi sementara sebelum meninggalkan halaman ini.');
+                        redirect(BASE_URL . '/admin/mahasiswa.php?prodi=' . $selectedProdi);
+                    } catch (Throwable $exception) {
+                        if ($pdo->inTransaction()) {
+                            $pdo->rollBack();
+                        }
+                        error_log('Manual user creation failed for department admin ' . $user['id'] . ': ' . $exception->getMessage());
+                        $errors[] = 'Akun gagal dibuat karena database menolak perubahan. Periksa data dan coba lagi.';
+                    }
+                }
+            }
         } elseif ($selectedProdi <= 0) {
             $errors[] = 'Pilih program studi terlebih dahulu.';
         } elseif (in_array($action, ['update_lecturer', 'reset_lecturer_password', 'set_lecturer_active'], true)) {
@@ -414,14 +449,17 @@ require_once __DIR__ . '/../includes/header.php';
     <div class="d-flex flex-column flex-md-row justify-content-between gap-2 align-items-md-center mb-3">
         <div>
             <h4 class="fw-bold mb-1"><?= e($selectedProgram['nama_prodi']) ?></h4>
-            <p class="text-muted mb-0">Akun yang diimpor akan otomatis terhubung ke program studi ini.</p>
+            <p class="text-muted mb-0">Akun yang ditambahkan manual maupun melalui impor akan terhubung ke program studi ini.</p>
         </div>
+        <button type="button" class="btn btn-polinela text-nowrap" data-bs-toggle="modal" data-bs-target="#createUserModal">
+            <i class="bi bi-person-plus-fill me-1"></i>Tambah Manual
+        </button>
     </div>
 
     <?php if ($importCredentials): ?>
         <div class="alert alert-warning">
-            <h5 class="alert-heading">Simpan informasi sandi ini</h5>
-            <p class="small">Sandi awal menggunakan tanggal lahir. Minta mahasiswa menggantinya saat login.</p>
+            <h5 class="alert-heading">Simpan sandi awal ini sekarang</h5>
+            <p class="small">Sandi ditampilkan satu kali saja. Berikan kepada pemilik akun dan minta untuk menggantinya saat login pertama.</p>
             <div class="table-responsive">
                 <table class="table table-sm table-bordered bg-white mb-0">
                     <thead><tr><th>Nama</th><th>Peran</th><th>Email</th><th>Sandi sementara</th></tr></thead>
@@ -437,6 +475,67 @@ require_once __DIR__ . '/../includes/header.php';
             </div>
         </div>
     <?php endif; ?>
+
+    <div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow">
+                <form method="POST">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="action" value="create_user">
+                    <input type="hidden" name="prodi" value="<?= $selectedProdi ?>">
+                    <div class="modal-header bg-success text-white">
+                        <div>
+                            <h5 class="modal-title fw-bold" id="createUserModalLabel"><i class="bi bi-person-plus-fill me-2"></i>Tambah Akun Manual</h5>
+                            <div class="small text-white-50"><?= e($selectedProgram['nama_prodi']) ?></div>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="alert alert-info py-2 small">
+                            Password awal dibuat dari tanggal lahir dalam format <code>DDMMYYYY</code>. Tanggal lahir tidak disimpan dan akun harus mengganti password saat login pertama.
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" for="manualAccountRole">Jenis akun</label>
+                            <select class="form-select" name="account_role" id="manualAccountRole" required>
+                                <option value="mahasiswa">Mahasiswa</option>
+                                <option value="dosen">Dosen</option>
+                            </select>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" for="manualAccountName">Nama lengkap</label>
+                                <input class="form-control" type="text" name="nama" id="manualAccountName" maxlength="100" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" for="manualAccountEmail">Email</label>
+                                <input class="form-control" type="email" name="email" id="manualAccountEmail" maxlength="100" required>
+                            </div>
+                            <div class="col-md-6" id="manualStudentFields">
+                                <label class="form-label fw-semibold" for="manualAccountNpm">NPM</label>
+                                <input class="form-control" type="text" name="npm" id="manualAccountNpm" maxlength="20">
+                            </div>
+                            <div class="col-md-6 d-none" id="manualLecturerIdField">
+                                <label class="form-label fw-semibold" for="manualAccountNidn">NIDN/NIP <span class="fw-normal text-muted">(opsional)</span></label>
+                                <input class="form-control" type="text" name="nidn_nip" id="manualAccountNidn" maxlength="30" disabled>
+                            </div>
+                            <div class="col-12 d-none" id="manualLecturerExpertiseField">
+                                <label class="form-label fw-semibold" for="manualAccountExpertise">Bidang keahlian</label>
+                                <input class="form-control" type="text" name="bidang_keahlian" id="manualAccountExpertise" maxlength="150" disabled>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" for="manualAccountBirthDate">Tanggal lahir</label>
+                                <input class="form-control" type="date" name="tanggal_lahir" id="manualAccountBirthDate" max="<?= date('Y-m-d') ?>" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-polinela"><i class="bi bi-save me-1"></i>Buat Akun</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <div class="card card-custom border-0 shadow-sm mb-4">
         <div class="card-body">
@@ -726,7 +825,7 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
     </div>
 <?php else: ?>
-    <div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>Pilih salah satu kartu program studi untuk membuka daftar pengguna dan impor akun.</div>
+    <div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>Pilih salah satu kartu program studi untuk membuka daftar pengguna, menambah akun manual, atau mengimpor akun.</div>
 <?php endif; ?>
 
 <script>
@@ -780,13 +879,36 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const roleSelect = document.getElementById('importRole');
     const templateLink = document.getElementById('downloadUserTemplate');
-    if (!roleSelect || !templateLink) return;
+    if (roleSelect && templateLink) {
+        roleSelect.addEventListener('change', function () {
+            const roleLabel = this.value === 'dosen' ? 'Dosen' : 'Mahasiswa';
+            templateLink.href = '<?= BASE_URL ?>/admin/mahasiswa.php?prodi=<?= $selectedProdi ?>&template=users&role=' + encodeURIComponent(this.value);
+            templateLink.innerHTML = '<i class="bi bi-download me-1"></i>Unduh Template ' + roleLabel;
+        });
+    }
 
-    roleSelect.addEventListener('change', function () {
-        const roleLabel = this.value === 'dosen' ? 'Dosen' : 'Mahasiswa';
-        templateLink.href = '<?= BASE_URL ?>/admin/mahasiswa.php?prodi=<?= $selectedProdi ?>&template=users&role=' + encodeURIComponent(this.value);
-        templateLink.innerHTML = '<i class="bi bi-download me-1"></i>Unduh Template ' + roleLabel;
-    });
+    const manualRoleSelect = document.getElementById('manualAccountRole');
+    const studentFields = document.getElementById('manualStudentFields');
+    const lecturerIdField = document.getElementById('manualLecturerIdField');
+    const lecturerExpertiseField = document.getElementById('manualLecturerExpertiseField');
+    if (manualRoleSelect && studentFields && lecturerIdField && lecturerExpertiseField) {
+        const studentNpm = document.getElementById('manualAccountNpm');
+        const lecturerNidn = document.getElementById('manualAccountNidn');
+        const lecturerExpertise = document.getElementById('manualAccountExpertise');
+        const updateManualFields = function () {
+            const isLecturer = manualRoleSelect.value === 'dosen';
+            studentFields.classList.toggle('d-none', isLecturer);
+            lecturerIdField.classList.toggle('d-none', !isLecturer);
+            lecturerExpertiseField.classList.toggle('d-none', !isLecturer);
+            studentNpm.disabled = isLecturer;
+            studentNpm.required = !isLecturer;
+            lecturerNidn.disabled = !isLecturer;
+            lecturerExpertise.disabled = !isLecturer;
+            lecturerExpertise.required = isLecturer;
+        };
+        manualRoleSelect.addEventListener('change', updateManualFields);
+        updateManualFields();
+    }
 });
 </script>
 

@@ -57,6 +57,7 @@ Skrip SQL membuat database `s_lectura`. Sesuaikan kredensial MySQL dan `BASE_URL
 6. `database/migrations/006_dummy_jadwal_mi_semester_1_3.sql` (Contoh jadwal Manajemen Informatika semester 1 dan 3)
 7. `database/migrations/007_dosen_trpl.sql` (Empat akun dosen contoh D4 Rekayasa Perangkat Lunak)
 8. `database/migrations/009_master_jurusan.sql` (Migrasi satu kali untuk memisahkan master jurusan; jalankan terakhir setelah backup)
+9. `database/migrations/010_akun_mahasiswa_nonaktif.sql` (Status akun aktif/nonaktif tanpa menghapus riwayat)
 
 Jika database lokal sudah memakai fitur janji temu (migrasi 004 sudah diterapkan), jalankan migrasi 005:
 ```cmd
@@ -82,6 +83,16 @@ C:\xampp\mysql\bin\mysqldump.exe -u root s_lectura > C:\xampp\backup\s_lectura-b
 C:\xampp\mysql\bin\mysql.exe -u root s_lectura < C:\xampp\htdocs\pm-main\database\migrations\009_master_jurusan.sql
 ```
 Setelah migrasi berhasil, aplikasi menyediakan menu **Master Jurusan** untuk tambah/edit/hapus jurusan. Jurusan yang masih dipakai prodi atau admin jurusan tidak dapat dihapus. Instalasi baru cukup mengimpor `database/s_lectura.sql`, yang sudah menggunakan skema master jurusan.
+Setelah migrasi 009, jalankan migrasi 010 satu kali untuk mengaktifkan fitur penonaktifan akun pada database lama:
+```cmd
+C:\xampp\mysql\bin\mysql.exe -u root s_lectura < C:\xampp\htdocs\pm-main\database\migrations\010_akun_mahasiswa_nonaktif.sql
+```
+Akun nonaktif tidak dapat login, tetapi profil dan riwayat pertemuannya tetap tersimpan; admin jurusan dapat mengaktifkannya kembali. Status ini berlaku untuk akun mahasiswa dan dosen.
+Jalankan migrasi 011 satu kali untuk menambahkan foto profil mahasiswa pada database lama:
+```cmd
+C:\xampp\mysql\bin\mysql.exe -u root s_lectura < C:\xampp\htdocs\pm-main\database\migrations\011_foto_profil_mahasiswa.sql
+```
+Mahasiswa dapat melihat nama, email, NPM, dan program studi serta mengubah foto profil melalui menu **Profil Saya**. Identitas akun hanya dapat diubah admin jurusan. Foto menerima format JPG, PNG, atau WEBP dengan ukuran maksimal 2MB.
 Setiap jadwal kini dimiliki satu dosen dan dibedakan menurut Termin 1/2. Dosen mengelola jadwal miliknya sendiri dan dapat mengunggah Excel. Admin jurusan dapat mengimpor satu file `.xlsx` berisi beberapa dosen, tetapi hanya dosen dan prodi dari jurusannya yang diterima. Unduh template dari menu **Import Jadwal Dosen**; impor hanya menyimpan data jika semua baris valid. Pastikan ekstensi PHP `zip` dan `SimpleXML` aktif.
 
 ### Langkah 3: Buka Aplikasi di Browser
@@ -100,8 +111,10 @@ Seed baru menyediakan akun demo berikut. Sandi dosen dan mahasiswa wajib diganti
 | Dosen | `dosen1@example.test`-`dosen6@example.test` | `password` |
 | Mahasiswa | `DEMO0001`-`DEMO0034` atau `mahasiswa01@example.test`-`mahasiswa34@example.test` | `password` |
 
-### Admin jurusan dan notifikasi
-Admin utama membuat akun berperan **Admin Jurusan** dan memilih jurusan yang menjadi cakupannya. Admin jurusan hanya dapat mencari mahasiswa di jurusannya, memperbarui email, serta mereset sandi; sandi sementara ditampilkan satu kali dan mahasiswa wajib menggantinya saat masuk. Laporan pertemuan admin jurusan juga dibatasi pada dosen di jurusannya. Dosen tetap mengelola jadwal dan pertemuannya sendiri.
+### Administrator, admin jurusan, dan notifikasi
+Administrator utama hanya mengelola akun **Admin Jurusan** (termasuk cakupan jurusan dan status akun), master jurusan/program studi, serta melihat laporan agregat seluruh kampus. Administrator utama tidak mengelola akun mahasiswa/dosen atau jadwal dosen. Admin jurusan memilih program studi pada halaman **Pilih Prodi & Pengguna**, memilih jenis impor **Mahasiswa** atau **Dosen**, lalu mengunduh template Excel khusus untuk jenis tersebut (maksimal 500 baris). Template mahasiswa berisi `nama`, `email`, `npm`, `tanggal_lahir`; template dosen berisi `nama`, `email`, `nidn_nip`, `bidang_keahlian`, `tanggal_lahir`. Seluruh baris divalidasi sebelum perubahan disimpan. Password awal menggunakan tanggal lahir dengan format `DDMMYYYY` (contoh `07-01-2004` menjadi `07012004`), wajib diganti saat login pertama, dan tanggal lahir tidak disimpan oleh aplikasi. Formatkan NPM/NIDN sebagai teks di Excel untuk menjaga angka nol di depan. Admin jurusan dapat mengedit nama/email mahasiswa, mengedit profil dosen (nama, email, NIDN/NIP, dan bidang keahlian), serta mereset password kedua peran ke tanggal lahir yang dimasukkan saat reset. Akun mahasiswa maupun dosen dapat dinonaktifkan atau diaktifkan kembali. Penonaktifan mencegah login tanpa menghapus profil; riwayat pertemuan tetap tersimpan, dan jadwal dosen juga tetap tersimpan. Laporan admin utama bersifat agregat lintas jurusan; admin jurusan hanya dapat melihat laporan sesuai cakupan jurusannya. Jadwal dan permintaan pertemuan dosen tetap dikelola oleh dosen.
+
+Pendaftaran mandiri mahasiswa tidak tersedia. Akun mahasiswa dan dosen dibuat oleh admin jurusan melalui impor data per program studi. S-LECTURA mendukung konsultasi akademik dan bimbingan umum; layanan Tugas Akhir dikelola di sistem terpisah.
 
 Notifikasi janji temu muncul di dalam aplikasi untuk mahasiswa dan dosen terkait. Pesan notifikasi tidak menyertakan alasan konsultasi, sehingga kategori konsultasi pribadi tidak membocorkan isi atau tujuannya.
 
@@ -165,7 +178,7 @@ s-lectura/
 ├── admin/
 │   ├── index.php                 # Dashboard metrik statistik kampus
 │   ├── users.php                 # Manajemen akun dan penetapan admin jurusan
-│   ├── mahasiswa.php             # Bantuan akun mahasiswa per jurusan
+│   ├── mahasiswa.php             # Pemilihan prodi dan impor akun mahasiswa/dosen
 │   ├── jadwal-import.php         # Import Excel multi-dosen terbatas per jurusan admin
 │   ├── dosen.php                 # Master data dosen & penugasan prodi
 │   ├── jurusan.php               # Kelola master jurusan
@@ -173,7 +186,7 @@ s-lectura/
 │   └── pertemuan.php             # Laporan agregat per dosen/semester tanpa identitas mahasiswa
 ├── login.php                     # Masuk multi-peran (email / NPM)
 ├── notifikasi.php                # Notifikasi privat per akun
-├── register.php                  # Registrasi mandiri mahasiswa
+├── register.php                  # Pengalihan ke login (pendaftaran mandiri dinonaktifkan)
 ├── logout.php                    # Logout & destroy session
 ├── .env.example                  # Contoh konfigurasi lokal (jangan commit .env)
 ├── .gitignore                    # Abaikan konfigurasi dan upload privat

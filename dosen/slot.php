@@ -1,7 +1,7 @@
 <?php
 // ==============================================================
 // S-LECTURA - Politeknik Negeri Lampung
-// Pengelolaan CRUD Slot Konsultasi & Bimbingan TA Dosen
+// Pengelolaan CRUD Slot Konsultasi dan Bimbingan Umum Dosen
 // File: dosen/slot.php
 // ==============================================================
 
@@ -101,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Eksekusi penyimpanan
         if (empty($errors)) {
             $catatanVal = !empty($catatan) ? mb_substr($catatan, 0, 255) : null;
-            $jenisLabel = $jenis === 'bimbingan' ? 'Bimbingan TA' : 'Konsultasi';
+            $jenisLabel = $jenis === 'bimbingan' ? 'Bimbingan umum' : 'Konsultasi';
 
             if ($action === 'create') {
                 $stmtInsert = $pdo->prepare("INSERT INTO slot_konsultasi (id_dosen, hari, jam_mulai, jam_selesai, jenis, catatan, aktif) 
@@ -151,8 +151,8 @@ require_once __DIR__ . '/../includes/header.php';
 
 <div class="row align-items-center mb-4">
     <div class="col-md-7">
-        <h3 class="fw-bold text-dark mb-1"><i class="bi bi-clock-history me-2 text-success"></i>Slot Konsultasi & Bimbingan</h3>
-        <p class="text-secondary small mb-0">Atur ketersediaan waktu untuk konsultasi akademik dan bimbingan Tugas Akhir bagi mahasiswa.</p>
+        <h3 class="fw-bold text-dark mb-1"><i class="bi bi-clock-history me-2 text-success"></i>Slot Konsultasi & Bimbingan Umum</h3>
+        <p class="text-secondary small mb-0">Atur waktu yang tersedia untuk konsultasi akademik atau bimbingan umum.</p>
     </div>
     <div class="col-md-5 text-md-end mt-3 mt-md-0">
         <button type="button" class="btn btn-polinela shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTambahSlot">
@@ -183,7 +183,7 @@ require_once __DIR__ . '/../includes/header.php';
             <div class="text-center py-5 px-3">
                 <i class="bi bi-clock-history fs-1 text-muted d-block mb-2"></i>
                 <h5 class="fw-semibold text-secondary">Belum Ada Slot Waktu</h5>
-                <p class="text-muted small mb-3">Tentukan waktu buka konsultasi atau bimbingan tugas akhir agar mahasiswa dapat menemui Anda pada waktu yang tepat.</p>
+                <p class="text-muted small mb-3">Tentukan waktu konsultasi atau bimbingan umum agar mahasiswa dapat menemui Anda pada waktu yang tepat.</p>
                 <button type="button" class="btn btn-sm btn-outline-polinela" data-bs-toggle="modal" data-bs-target="#modalTambahSlot">
                     <i class="bi bi-plus-lg me-1"></i>Tambah Slot Pertama
                 </button>
@@ -218,7 +218,7 @@ require_once __DIR__ . '/../includes/header.php';
                                 <td>
                                     <?php if ($s['jenis'] === 'bimbingan'): ?>
                                         <span class="badge bg-info text-dark px-2 py-1">
-                                            <i class="bi bi-mortarboard-fill me-1"></i>Bimbingan TA
+                                            <i class="bi bi-chat-dots-fill me-1"></i>Bimbingan umum
                                         </span>
                                     <?php else: ?>
                                         <span class="badge bg-warning text-dark px-2 py-1">
@@ -311,7 +311,7 @@ require_once __DIR__ . '/../includes/header.php';
                         <label for="jenis_slot" class="form-label fw-semibold small text-secondary">Jenis Slot *</label>
                         <select class="form-select" id="jenis_slot" name="jenis" required>
                             <option value="konsultasi">Konsultasi Akademik / Perkuliahan</option>
-                            <option value="bimbingan">Bimbingan Tugas Akhir / Skripsi / PKL</option>
+                            <option value="bimbingan">Bimbingan umum</option>
                         </select>
                     </div>
 
@@ -373,7 +373,7 @@ require_once __DIR__ . '/../includes/header.php';
                         <label for="edit_slot_jenis" class="form-label fw-semibold small text-secondary">Jenis Slot *</label>
                         <select class="form-select" id="edit_slot_jenis" name="jenis" required>
                             <option value="konsultasi">Konsultasi Akademik / Perkuliahan</option>
-                            <option value="bimbingan">Bimbingan Tugas Akhir / Skripsi / PKL</option>
+                            <option value="bimbingan">Bimbingan umum</option>
                         </select>
                     </div>
 
@@ -417,4 +417,3 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
-

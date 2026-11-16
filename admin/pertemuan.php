@@ -25,6 +25,21 @@ if ($user['role'] === 'admin_jurusan') {
 }
 $yearFilter = trim($_GET['tahun_ajaran'] ?? '');
 $semesterFilter = (int)($_GET['semester'] ?? 0);
+$prodiFilter = (int)($_GET['prodi'] ?? 0);
+$prodiSql = 'SELECT id, nama_prodi FROM program_studi';
+$prodiParams = [];
+if ($jurusanScope !== null) {
+    $prodiSql .= ' WHERE id_jurusan = :jurusan';
+    $prodiParams[':jurusan'] = (int)$jurusanScope;
+}
+$prodiSql .= ' ORDER BY nama_prodi';
+$stmtProdi = $pdo->prepare($prodiSql);
+$stmtProdi->execute($prodiParams);
+$prodiOptions = $stmtProdi->fetchAll();
+$validProdiIds = array_map(static fn($program) => (int)$program['id'], $prodiOptions);
+if (!in_array($prodiFilter, $validProdiIds, true)) {
+    $prodiFilter = 0;
+}
 
 $periodSql = "SELECT DISTINCT pp.tahun_ajaran, pp.semester
               FROM permintaan_pertemuan pp
@@ -36,6 +51,10 @@ if ($jurusanScope !== null) {
     $periodSql .= " AND p.id_jurusan = :jurusan";
     $periodParams[':jurusan'] = $jurusanScope;
 }
+if ($prodiFilter > 0) {
+    $periodSql .= ' AND p.id = :prodi';
+    $periodParams[':prodi'] = $prodiFilter;
+}
 $periodSql .= " ORDER BY pp.tahun_ajaran DESC, pp.semester DESC";
 $stmtPeriods = $pdo->prepare($periodSql);
 $stmtPeriods->execute($periodParams);
@@ -45,6 +64,9 @@ $where = [];
 $params = $periodParams;
 if ($jurusanScope !== null) {
     $where[] = 'p.id_jurusan = :jurusan';
+}
+if ($prodiFilter > 0) {
+    $where[] = 'p.id = :prodi';
 }
 if ($yearFilter !== '') {
     $where[] = 'pp.tahun_ajaran = :tahun_ajaran';
@@ -95,7 +117,16 @@ require_once __DIR__ . '/../includes/header.php';
 
 <form method="GET" class="card card-custom border-0 shadow-sm mb-4">
     <div class="card-body row g-3 align-items-end">
-        <div class="col-md-5">
+        <div class="col-md-4">
+            <label class="form-label" for="prodi">Program studi</label>
+            <select class="form-select" id="prodi" name="prodi">
+                <option value="0">Semua program studi</option>
+                <?php foreach ($prodiOptions as $program): ?>
+                    <option value="<?= (int)$program['id'] ?>" <?= $prodiFilter === (int)$program['id'] ? 'selected' : '' ?>><?= e($program['nama_prodi']) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="col-md-3">
             <label class="form-label" for="tahun_ajaran">Tahun ajaran</label>
             <select class="form-select" id="tahun_ajaran" name="tahun_ajaran">
                 <option value="">Semua tahun ajaran</option>
@@ -104,7 +135,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <?php endforeach; ?>
             </select>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <label class="form-label" for="semester">Semester kelas</label>
             <select class="form-select" id="semester" name="semester">
                 <option value="0">Semua semester</option>
@@ -113,7 +144,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <?php endfor; ?>
             </select>
         </div>
-        <div class="col-md-3 d-flex gap-2">
+        <div class="col-md-2 d-flex gap-2">
             <button type="submit" class="btn btn-polinela flex-grow-1">Terapkan</button>
             <a href="<?= BASE_URL ?>/admin/pertemuan.php" class="btn btn-outline-secondary">Reset</a>
         </div>
@@ -127,7 +158,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <tr>
                     <th class="ps-4">Dosen / Prodi</th><th>Periode snapshot</th>
                     <th>Permintaan</th><th>Terlaksana</th><th>Mahasiswa unik formal</th>
-                    <th>Konsultasi selesai</th><th>Bimbingan selesai</th>
+                    <th>Konsultasi selesai</th><th>Bimbingan umum selesai</th>
                     <th>Permintaan pribadi</th><th>Pribadi terlaksana</th>
                 </tr>
             </thead>

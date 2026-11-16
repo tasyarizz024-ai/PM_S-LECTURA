@@ -47,6 +47,14 @@ function require_login(): void {
         set_flash('warning', 'Silakan masuk terlebih dahulu untuk mengakses halaman tersebut.');
         redirect(BASE_URL . '/login.php');
     }
+    $pdo = get_db_connection();
+    $stmt = $pdo->prepare("SELECT aktif FROM users WHERE id = :id LIMIT 1");
+    $stmt->execute([':id' => (int)$_SESSION['user_id']]);
+    if ((int)$stmt->fetchColumn() !== 1) {
+        logout_user();
+        set_flash('warning', 'Akun ini sudah dinonaktifkan. Hubungi admin jurusan jika Anda memerlukan bantuan.');
+        redirect(BASE_URL . '/login.php');
+    }
     require_password_change();
 }
 

@@ -1,9 +1,5 @@
 <?php
-// ==============================================================
-// S-LECTURA - Politeknik Negeri Lampung
-// Pengelolaan Pengguna (Users) - Administrator
-// File: admin/users.php
-// ==============================================================
+// Manage department administrator accounts.
 
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/helpers.php';
@@ -13,566 +9,348 @@ require_role('admin');
 
 $pdo = get_db_connection();
 $currentUser = current_user();
-
 $errors = [];
 
-// ==============================================================
-// PROSES AKSI POST (CREATE / UPDATE / RESET PASSWORD / DELETE)
-// ==============================================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $csrfToken = $_POST['csrf_token'] ?? '';
-    if (!verify_csrf_token($csrfToken)) {
+    if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
         set_flash('danger', 'Token CSRF tidak valid. Silakan coba lagi.');
         redirect(BASE_URL . '/admin/users.php');
     }
 
     $action = $_POST['action'] ?? '';
+    $targetId = (int)($_POST['id'] ?? 0);
 
-    // 1. TAMBAH PENGGUNA BARU
     if ($action === 'create') {
-        $nama = trim($_POST['nama'] ?? '');
+        $name = trim($_POST['nama'] ?? '');
         $email = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
-        $role = trim($_POST['role'] ?? '');
-        $npm = trim($_POST['npm'] ?? '');
+        $departmentId = (int)($_POST['id_jurusan'] ?? 0);
 
-        if (empty($nama)) $errors[] = 'Nama lengkap wajib diisi.';
-        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Alamat email tidak valid.';
-        if (strlen($password) < 6) $errors[] = 'Kata sandi minimal 6 karakter.';
-        if (!in_array($role, ['admin', 'admin_jurusan', 'dosen', 'mahasiswa'], true)) $errors[] = 'Peran pengguna tidak valid.';
-        if ($role === 'mahasiswa' && empty($npm)) $errors[] = 'NPM wajib diisi untuk peran Mahasiswa.';
-        $idJurusan = (int)($_POST['id_jurusan'] ?? 0);
-        if ($role === 'admin_jurusan') {
-            $stmtJurusan = $pdo->prepare("SELECT id FROM jurusan WHERE id = :id LIMIT 1");
-            $stmtJurusan->execute([':id' => $idJurusan]);
-            if (!$stmtJurusan->fetchColumn()) $errors[] = 'Jurusan admin tidak valid.';
+        if ($name === '' || mb_strlen($name) > 100) {
+            $errors[] = 'Nama wajib diisi dan maksimal 100 karakter.';
+        }
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 100) {
+            $errors[] = 'Alamat email tidak valid atau melebihi 100 karakter.';
+        }
+        if (strlen($password) < 6) {
+            $errors[] = 'Kata sandi awal minimal 6 karakter.';
+        }
+        $stmtDepartment = $pdo->prepare("SELECT id FROM jurusan WHERE id = :id LIMIT 1");
+        $stmtDepartment->execute([':id' => $departmentId]);
+        if (!$stmtDepartment->fetchColumn()) {
+            $errors[] = 'Jurusan yang dipilih tidak valid.';
+        }
+        $stmtDuplicate = $pdo->prepare("SELECT id FROM users WHERE email = :email LIMIT 1");
+        $stmtDuplicate->execute([':email' => $email]);
+        if ($stmtDuplicate->fetchColumn()) {
+            $errors[] = 'Email sudah digunakan akun lain.';
         }
 
-        if (empty($errors)) {
-            // Cek duplikasi email
-            $stmtC = $pdo->prepare("SELECT id FROM users WHERE email = :email LIMIT 1");
-            $stmtC->execute([':email' => $email]);
-            if ($stmtC->fetch()) $errors[] = 'Email sudah digunakan oleh akun lain.';
-
-            // Cek duplikasi NPM jika mahasiswa
-            if ($role === 'mahasiswa' && !empty($npm)) {
-                $stmtN = $pdo->prepare("SELECT id FROM users WHERE npm = :user_npm UNION SELECT user_id FROM mahasiswa WHERE npm = :student_npm LIMIT 1");
-                $stmtN->execute([':user_npm' => $npm, ':student_npm' => $npm]);
-                if ($stmtN->fetch()) $errors[] = 'NPM sudah digunakan oleh mahasiswa lain.';
-            }
-        }
-
-        if (empty($errors)) {
-            $hash = password_hash($password, PASSWORD_BCRYPT);
-            $pdo->beginTransaction();
-            $stmtIns = $pdo->prepare("INSERT INTO users (nama, email, password_hash, role, npm, must_change_password) 
-                                      VALUES (:nama, :email, :hash, :role, :npm, 1)");
-            $stmtIns->execute([
-                ':nama'  => $nama,
-                ':email' => $email,
-                ':hash'  => $hash,
-                ':role'  => $role,
-                ':npm'   => ($role === 'mahasiswa') ? $npm : null,
-            ]);
-            $newUid = (int)$pdo->lastInsertId();
-
-            if ($role === 'mahasiswa') {
-                $prodiDef = $pdo->query("SELECT id FROM program_studi ORDER BY id ASC LIMIT 1")->fetchColumn() ?: 2;
-                $stmtM = $pdo->prepare("INSERT INTO mahasiswa (user_id, npm, id_kelas, id_prodi) VALUES (:uid, :npm, NULL, :prodi)");
-                $stmtM->execute([':uid' => $newUid, ':npm' => $npm, ':prodi' => $prodiDef]);
-            } elseif ($role === 'admin_jurusan') {
-                $stmtScope = $pdo->prepare("INSERT INTO admin_jurusan (user_id, id_jurusan) VALUES (:uid, :jurusan)");
-                $stmtScope->execute([':uid' => $newUid, ':jurusan' => $idJurusan]);
-            }
-            $pdo->commit();
-
-            set_flash('success', "Akun pengguna '{$nama}' ({$role}) berhasil dibuat.");
-            redirect(BASE_URL . '/admin/users.php');
-        }
-    }
-
-    // 2. EDIT DATA PENGGUNA
-    if ($action === 'update') {
-        $idUser = (int)($_POST['id'] ?? 0);
-        $nama = trim($_POST['nama'] ?? '');
-        $email = trim($_POST['email'] ?? '');
-        $role = trim($_POST['role'] ?? '');
-        $npm = trim($_POST['npm'] ?? '');
-
-        if (empty($nama)) $errors[] = 'Nama lengkap wajib diisi.';
-        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Alamat email tidak valid.';
-        if (!in_array($role, ['admin', 'admin_jurusan', 'dosen', 'mahasiswa'], true)) $errors[] = 'Peran pengguna tidak valid.';
-        if ($role === 'mahasiswa' && empty($npm)) $errors[] = 'NPM wajib diisi untuk peran Mahasiswa.';
-        $idJurusan = (int)($_POST['id_jurusan'] ?? 0);
-        if ($role === 'admin_jurusan') {
-            $stmtJurusan = $pdo->prepare("SELECT id FROM jurusan WHERE id = :id LIMIT 1");
-            $stmtJurusan->execute([':id' => $idJurusan]);
-            if (!$stmtJurusan->fetchColumn()) $errors[] = 'Jurusan admin tidak valid.';
-        }
-
-        if (empty($errors)) {
-            // Cek email ganda pada pengguna lain
-            $stmtC = $pdo->prepare("SELECT id FROM users WHERE email = :email AND id != :id LIMIT 1");
-            $stmtC->execute([':email' => $email, ':id' => $idUser]);
-            if ($stmtC->fetch()) $errors[] = 'Email sudah digunakan oleh akun lain.';
-
-            // Cek NPM ganda jika mahasiswa
-            if ($role === 'mahasiswa' && !empty($npm)) {
-                $stmtN = $pdo->prepare(
-                    "SELECT id FROM users WHERE npm = :user_npm AND id != :user_id
-                     UNION
-                     SELECT user_id FROM mahasiswa WHERE npm = :student_npm AND user_id != :student_user_id
-                     LIMIT 1"
+        if (!$errors) {
+            try {
+                $pdo->beginTransaction();
+                $stmtCreateUser = $pdo->prepare(
+                    "INSERT INTO users (nama, email, password_hash, role, must_change_password)
+                     VALUES (:nama, :email, :password_hash, 'admin_jurusan', 1)"
                 );
-                $stmtN->execute([
-                    ':user_npm' => $npm,
-                    ':user_id' => $idUser,
-                    ':student_npm' => $npm,
-                    ':student_user_id' => $idUser,
+                $stmtCreateUser->execute([
+                    ':nama' => $name,
+                    ':email' => $email,
+                    ':password_hash' => password_hash($password, PASSWORD_BCRYPT),
                 ]);
-                if ($stmtN->fetch()) $errors[] = 'NPM sudah digunakan oleh mahasiswa lain.';
-            }
-        }
-
-        if (empty($errors)) {
-            $pdo->beginTransaction();
-            $stmtUpd = $pdo->prepare("UPDATE users 
-                                      SET nama = :nama, email = :email, role = :role, npm = :npm 
-                                      WHERE id = :id");
-            $stmtUpd->execute([
-                ':nama'  => $nama,
-                ':email' => $email,
-                ':role'  => $role,
-                ':npm'   => ($role === 'mahasiswa') ? $npm : null,
-                ':id'    => $idUser,
-            ]);
-            if ($role === 'mahasiswa') {
-                $stmtSyncNpm = $pdo->prepare("UPDATE mahasiswa SET npm = :npm WHERE user_id = :id");
-                $stmtSyncNpm->execute([':npm' => $npm, ':id' => $idUser]);
-            }
-            if ($role === 'admin_jurusan') {
-                $stmtScope = $pdo->prepare(
-                    "INSERT INTO admin_jurusan (user_id, id_jurusan) VALUES (:uid, :jurusan)
-                     ON DUPLICATE KEY UPDATE id_jurusan = VALUES(id_jurusan)"
+                $newUserId = (int)$pdo->lastInsertId();
+                $stmtCreateScope = $pdo->prepare(
+                    "INSERT INTO admin_jurusan (user_id, id_jurusan) VALUES (:user_id, :jurusan_id)"
                 );
-                $stmtScope->execute([':uid' => $idUser, ':jurusan' => $idJurusan]);
-            } else {
-                $stmtScope = $pdo->prepare("DELETE FROM admin_jurusan WHERE user_id = :uid");
-                $stmtScope->execute([':uid' => $idUser]);
+                $stmtCreateScope->execute([':user_id' => $newUserId, ':jurusan_id' => $departmentId]);
+                $pdo->commit();
+                set_flash('success', "Akun admin jurusan '{$name}' berhasil dibuat.");
+                redirect(BASE_URL . '/admin/users.php');
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                error_log('Department administrator creation failed: ' . $exception->getMessage());
+                $errors[] = 'Akun admin jurusan gagal dibuat karena database menolak perubahan.';
             }
-            $pdo->commit();
-
-            set_flash('success', "Data pengguna '{$nama}' berhasil diperbarui.");
-            redirect(BASE_URL . '/admin/users.php');
         }
-    }
+    } elseif (in_array($action, ['update', 'reset_password', 'set_active'], true)) {
+        $stmtTarget = $pdo->prepare(
+            "SELECT u.id, u.nama
+             FROM users u
+             JOIN admin_jurusan aj ON aj.user_id = u.id
+             WHERE u.id = :id AND u.role = 'admin_jurusan'
+             LIMIT 1"
+        );
+        $stmtTarget->execute([':id' => $targetId]);
+        $target = $stmtTarget->fetch();
+        if (!$target) {
+            $errors[] = 'Akun admin jurusan tidak ditemukan.';
+        } elseif ($action === 'update') {
+            $name = trim($_POST['nama'] ?? '');
+            $email = trim($_POST['email'] ?? '');
+            $departmentId = (int)($_POST['id_jurusan'] ?? 0);
+            if ($name === '' || mb_strlen($name) > 100) {
+                $errors[] = 'Nama wajib diisi dan maksimal 100 karakter.';
+            }
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 100) {
+                $errors[] = 'Alamat email tidak valid atau melebihi 100 karakter.';
+            }
+            $stmtDepartment = $pdo->prepare("SELECT id FROM jurusan WHERE id = :id LIMIT 1");
+            $stmtDepartment->execute([':id' => $departmentId]);
+            if (!$stmtDepartment->fetchColumn()) {
+                $errors[] = 'Jurusan yang dipilih tidak valid.';
+            }
+            $stmtDuplicate = $pdo->prepare(
+                "SELECT id FROM users WHERE email = :email AND id <> :id LIMIT 1"
+            );
+            $stmtDuplicate->execute([':email' => $email, ':id' => $targetId]);
+            if ($stmtDuplicate->fetchColumn()) {
+                $errors[] = 'Email sudah digunakan akun lain.';
+            }
 
-    // 3. RESET KATA SANDI PENGGUNA
-    if ($action === 'reset_password') {
-        $idUser = (int)($_POST['id'] ?? 0);
-        $newPass = $_POST['new_password'] ?? '';
-
-        if (strlen($newPass) < 6) {
-            $errors[] = 'Kata sandi baru minimal harus 6 karakter.';
-        } else {
-            $newHash = password_hash($newPass, PASSWORD_BCRYPT);
-            $stmtPass = $pdo->prepare("UPDATE users SET password_hash = :hash, must_change_password = 1 WHERE id = :id");
-            $stmtPass->execute([':hash' => $newHash, ':id' => $idUser]);
-
-            set_flash('success', 'Kata sandi pengguna berhasil direset.');
-            redirect(BASE_URL . '/admin/users.php');
+            if (!$errors) {
+                try {
+                    $pdo->beginTransaction();
+                    $stmtUpdate = $pdo->prepare(
+                        "UPDATE users
+                         SET nama = :nama, email = :email
+                         WHERE id = :id AND role = 'admin_jurusan'"
+                    );
+                    $stmtUpdate->execute([':nama' => $name, ':email' => $email, ':id' => $targetId]);
+                    $stmtUpdateScope = $pdo->prepare(
+                        "UPDATE admin_jurusan SET id_jurusan = :jurusan_id WHERE user_id = :user_id"
+                    );
+                    $stmtUpdateScope->execute([':jurusan_id' => $departmentId, ':user_id' => $targetId]);
+                    $pdo->commit();
+                    set_flash('success', "Data admin jurusan '{$name}' berhasil diperbarui.");
+                    redirect(BASE_URL . '/admin/users.php');
+                } catch (Throwable $exception) {
+                    if ($pdo->inTransaction()) {
+                        $pdo->rollBack();
+                    }
+                    error_log('Department administrator update failed: ' . $exception->getMessage());
+                    $errors[] = 'Data admin jurusan gagal diperbarui.';
+                }
+            }
+        } elseif ($action === 'reset_password') {
+            $password = $_POST['new_password'] ?? '';
+            if (strlen($password) < 6) {
+                $errors[] = 'Kata sandi baru minimal 6 karakter.';
+            } else {
+                $stmtReset = $pdo->prepare(
+                    "UPDATE users
+                     SET password_hash = :password_hash, must_change_password = 1
+                     WHERE id = :id AND role = 'admin_jurusan'"
+                );
+                $stmtReset->execute([
+                    ':password_hash' => password_hash($password, PASSWORD_BCRYPT),
+                    ':id' => $targetId,
+                ]);
+                set_flash('success', "Kata sandi admin jurusan '{$target['nama']}' berhasil direset.");
+                redirect(BASE_URL . '/admin/users.php');
+            }
+        } elseif ($action === 'set_active') {
+            $active = (int)($_POST['aktif'] ?? 0) === 1 ? 1 : 0;
+            if ($targetId === (int)$currentUser['id'] && $active === 0) {
+                $errors[] = 'Anda tidak dapat menonaktifkan akun sendiri.';
+            } else {
+                $stmtSetActive = $pdo->prepare(
+                    "UPDATE users SET aktif = :aktif WHERE id = :id AND role = 'admin_jurusan'"
+                );
+                $stmtSetActive->execute([':aktif' => $active, ':id' => $targetId]);
+                set_flash('success', $active
+                    ? "Akun admin jurusan '{$target['nama']}' berhasil diaktifkan."
+                    : "Akun admin jurusan '{$target['nama']}' berhasil dinonaktifkan.");
+                redirect(BASE_URL . '/admin/users.php');
+            }
         }
-    }
-
-    // 4. HAPUS PENGGUNA
-    if ($action === 'delete') {
-        $idUser = (int)($_POST['id'] ?? 0);
-
-        // Larang menghapus diri sendiri
-        if ($idUser === (int)$currentUser['id']) {
-            set_flash('danger', 'Anda tidak dapat menghapus akun Anda sendiri saat sedang masuk.');
-        } else {
-            $stmtDel = $pdo->prepare("DELETE FROM users WHERE id = :id");
-            $stmtDel->execute([':id' => $idUser]);
-            set_flash('success', 'Akun pengguna berhasil dihapus dari sistem.');
-        }
-        redirect(BASE_URL . '/admin/users.php');
+    } else {
+        $errors[] = 'Aksi tidak dikenali.';
     }
 }
 
-// Filter & Pencarian Pengguna
-$q = trim($_GET['q'] ?? '');
-$roleFilter = trim($_GET['role'] ?? '');
-
-$sql = "SELECT u.*, COALESCE(m.npm, u.npm) AS npm_display,
-               aj.id_jurusan, j.nama_jurusan AS jurusan_admin
+$search = trim($_GET['q'] ?? '');
+$sql = "SELECT u.id, u.nama, u.email, u.aktif, u.created_at,
+               aj.id_jurusan, j.nama_jurusan
         FROM users u
-        LEFT JOIN mahasiswa m ON m.user_id = u.id
-        LEFT JOIN admin_jurusan aj ON aj.user_id = u.id
-        LEFT JOIN jurusan j ON j.id = aj.id_jurusan
-        WHERE 1=1";
+        JOIN admin_jurusan aj ON aj.user_id = u.id
+        JOIN jurusan j ON j.id = aj.id_jurusan
+        WHERE u.role = 'admin_jurusan'";
 $params = [];
-if (!empty($q)) {
-    $sql .= " AND (u.nama LIKE :nama_q OR u.email LIKE :email_q OR u.npm LIKE :user_npm_q OR m.npm LIKE :student_npm_q)";
-    $params[':nama_q'] = "%{$q}%";
-    $params[':email_q'] = "%{$q}%";
-    $params[':user_npm_q'] = "%{$q}%";
-    $params[':student_npm_q'] = "%{$q}%";
+if ($search !== '') {
+    $sql .= " AND (u.nama LIKE :nama OR u.email LIKE :email OR j.nama_jurusan LIKE :jurusan)";
+    $pattern = '%' . $search . '%';
+    $params = [':nama' => $pattern, ':email' => $pattern, ':jurusan' => $pattern];
 }
-if (!empty($roleFilter) && in_array($roleFilter, ['admin', 'admin_jurusan', 'dosen', 'mahasiswa'], true)) {
-    $sql .= " AND u.role = :role";
-    $params[':role'] = $roleFilter;
-}
-$sql .= " ORDER BY u.id DESC";
+$sql .= " ORDER BY j.nama_jurusan, u.nama";
+$stmtAdmins = $pdo->prepare($sql);
+$stmtAdmins->execute($params);
+$admins = $stmtAdmins->fetchAll();
+$departments = $pdo->query("SELECT id, nama_jurusan FROM jurusan ORDER BY nama_jurusan")->fetchAll();
 
-$stmtUsers = $pdo->prepare($sql);
-$stmtUsers->execute($params);
-$usersList = $stmtUsers->fetchAll();
-$jurusanOptions = $pdo->query("SELECT id, nama_jurusan FROM jurusan ORDER BY nama_jurusan")->fetchAll();
-
-$page_title = 'Kelola Pengguna';
+$page_title = 'Admin Jurusan';
 $active_page = 'users';
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="row align-items-center mb-4">
-    <div class="col-md-7">
-        <h3 class="fw-bold text-dark mb-1"><i class="bi bi-people-fill me-2 text-primary"></i>Manajemen Pengguna</h3>
-        <p class="text-secondary small mb-0">Admin utama mengelola akun dan menetapkan cakupan admin jurusan.</p>
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1"><i class="bi bi-person-vcard me-2 text-success"></i>Akun Admin Jurusan</h3>
+        <p class="text-secondary small mb-0">Kelola akun admin dan cakupan jurusan. Pengelolaan mahasiswa dan dosen dilakukan admin jurusan.</p>
     </div>
-    <div class="col-md-5 text-md-end mt-3 mt-md-0">
-        <button type="button" class="btn btn-polinela shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTambahUser">
-            <i class="bi bi-person-plus-fill me-1"></i>Tambah Pengguna Baru
-        </button>
-    </div>
+    <button type="button" class="btn btn-polinela shadow-sm" data-bs-toggle="modal" data-bs-target="#createAdminModal">
+        <i class="bi bi-person-plus-fill me-1"></i>Tambah Admin Jurusan
+    </button>
 </div>
 
-<?php if (!empty($errors)): ?>
+<?php if ($errors): ?>
     <div class="alert alert-danger shadow-sm">
-        <strong class="d-block mb-1"><i class="bi bi-exclamation-octagon-fill me-1"></i>Terjadi Kesalahan:</strong>
-        <ul class="mb-0 ps-3 small">
-            <?php foreach ($errors as $err): ?>
-                <li><?= e($err) ?></li>
-            <?php endforeach; ?>
-        </ul>
+        <strong class="d-block mb-1">Permintaan belum berhasil:</strong>
+        <ul class="mb-0 ps-3 small"><?php foreach ($errors as $error): ?><li><?= e($error) ?></li><?php endforeach; ?></ul>
     </div>
 <?php endif; ?>
 
-<!-- Filter & Pencarian Form -->
-<div class="card card-custom border-0 shadow-sm mb-4">
-    <div class="card-body p-3">
-        <form method="GET" action="<?= BASE_URL ?>/admin/users.php" class="row g-2 align-items-center">
-            <div class="col-md-6 col-lg-5">
-                <input type="text" class="form-control" name="q" value="<?= e($q) ?>" placeholder="Cari nama, email, atau NPM...">
+<form method="GET" class="card card-custom border-0 shadow-sm mb-4">
+    <div class="card-body d-flex flex-column flex-md-row gap-2">
+        <input class="form-control" type="search" name="q" value="<?= e($search) ?>" placeholder="Cari nama admin, email, atau jurusan">
+        <button class="btn btn-polinela text-nowrap" type="submit"><i class="bi bi-search me-1"></i>Cari</button>
+        <a class="btn btn-outline-secondary" href="<?= BASE_URL ?>/admin/users.php" title="Reset pencarian"><i class="bi bi-arrow-counterclockwise"></i></a>
+    </div>
+</form>
+
+<div class="card card-custom border-0 shadow-sm">
+    <div class="card-header card-header-polinela d-flex justify-content-between align-items-center">
+        <span class="fw-bold"><i class="bi bi-people me-2"></i>Daftar Admin Jurusan</span>
+        <span class="badge bg-success"><?= count($admins) ?> akun</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead><tr><th class="ps-4">Nama</th><th>Email</th><th>Jurusan</th><th>Status</th><th>Terdaftar</th><th class="text-end pe-4">Aksi</th></tr></thead>
+            <tbody>
+            <?php if (!$admins): ?>
+                <tr><td colspan="6" class="text-center text-muted p-4">Belum ada akun admin jurusan yang sesuai.</td></tr>
+            <?php else: foreach ($admins as $admin): ?>
+                <tr>
+                    <td class="ps-4 fw-semibold">
+                        <?= e($admin['nama']) ?>
+                        <?php if ((int)$admin['id'] === (int)$currentUser['id']): ?><span class="badge bg-warning text-dark ms-1">Akun Anda</span><?php endif; ?>
+                    </td>
+                    <td><?= e($admin['email']) ?></td>
+                    <td><?= e($admin['nama_jurusan']) ?></td>
+                    <td><span class="badge <?= (int)$admin['aktif'] === 1 ? 'bg-success' : 'bg-secondary' ?>"><?= (int)$admin['aktif'] === 1 ? 'Aktif' : 'Nonaktif' ?></span></td>
+                    <td class="small text-muted"><?= format_datetime($admin['created_at']) ?></td>
+                    <td class="text-end pe-4 text-nowrap">
+                        <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#editAdminModal"
+                                data-id="<?= (int)$admin['id'] ?>" data-nama="<?= e($admin['nama']) ?>"
+                                data-email="<?= e($admin['email']) ?>" data-jurusan="<?= (int)$admin['id_jurusan'] ?>" title="Edit admin">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning text-dark" type="button" data-bs-toggle="modal" data-bs-target="#resetPasswordModal"
+                                data-id="<?= (int)$admin['id'] ?>" data-nama="<?= e($admin['nama']) ?>" title="Reset sandi">
+                            <i class="bi bi-key-fill"></i>
+                        </button>
+                        <?php if ((int)$admin['id'] !== (int)$currentUser['id']): ?>
+                            <form method="POST" class="d-inline">
+                                <?= csrf_field() ?>
+                                <input type="hidden" name="action" value="set_active">
+                                <input type="hidden" name="id" value="<?= (int)$admin['id'] ?>">
+                                <input type="hidden" name="aktif" value="<?= (int)$admin['aktif'] === 1 ? 0 : 1 ?>">
+                                <button class="btn btn-sm <?= (int)$admin['aktif'] === 1 ? 'btn-outline-danger' : 'btn-outline-success' ?>" type="submit"
+                                        data-confirm="<?= (int)$admin['aktif'] === 1 ? 'Nonaktifkan' : 'Aktifkan' ?> akun admin <?= e($admin['nama']) ?>?"
+                                        title="<?= (int)$admin['aktif'] === 1 ? 'Nonaktifkan akun' : 'Aktifkan akun' ?>">
+                                    <i class="bi <?= (int)$admin['aktif'] === 1 ? 'bi-person-dash' : 'bi-person-check' ?>"></i>
+                                </button>
+                            </form>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+            <?php endforeach; endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="createAdminModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow">
+        <form method="POST">
+            <?= csrf_field() ?><input type="hidden" name="action" value="create">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold">Tambah Admin Jurusan</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="col-md-4 col-lg-3">
-                <select class="form-select" name="role">
-                    <option value="">Semua Peran</option>
-                    <option value="admin" <?= $roleFilter === 'admin' ? 'selected' : '' ?>>Administrator</option>
-                    <option value="admin_jurusan" <?= $roleFilter === 'admin_jurusan' ? 'selected' : '' ?>>Admin Jurusan</option>
-                    <option value="dosen" <?= $roleFilter === 'dosen' ? 'selected' : '' ?>>Dosen</option>
-                    <option value="mahasiswa" <?= $roleFilter === 'mahasiswa' ? 'selected' : '' ?>>Mahasiswa</option>
+            <div class="modal-body p-4">
+                <label class="form-label" for="createName">Nama lengkap</label>
+                <input class="form-control mb-3" id="createName" name="nama" maxlength="100" required>
+                <label class="form-label" for="createEmail">Email akun</label>
+                <input class="form-control mb-3" id="createEmail" name="email" type="email" maxlength="100" required>
+                <label class="form-label" for="createPassword">Kata sandi awal</label>
+                <input class="form-control mb-3" id="createPassword" name="password" type="password" minlength="6" required>
+                <label class="form-label" for="createDepartment">Jurusan yang dikelola</label>
+                <select class="form-select" id="createDepartment" name="id_jurusan" required>
+                    <option value="">Pilih jurusan</option>
+                    <?php foreach ($departments as $department): ?><option value="<?= (int)$department['id'] ?>"><?= e($department['nama_jurusan']) ?></option><?php endforeach; ?>
                 </select>
             </div>
-            <div class="col-md-2 d-flex gap-2">
-                <button type="submit" class="btn btn-polinela flex-fill"><i class="bi bi-search me-1"></i>Cari</button>
-                <a href="<?= BASE_URL ?>/admin/users.php" class="btn btn-outline-secondary" title="Reset"><i class="bi bi-arrow-counterclockwise"></i></a>
-            </div>
+            <div class="modal-footer"><button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Batal</button><button class="btn btn-polinela" type="submit">Buat Akun</button></div>
         </form>
-    </div>
+    </div></div>
 </div>
 
-<!-- Tabel Pengguna -->
-<div class="card card-custom border-0 shadow-sm">
-    <div class="card-header card-header-polinela d-flex justify-content-between align-items-center py-3">
-        <span class="fw-bold"><i class="bi bi-table me-2"></i>Daftar Pengguna Sistem</span>
-        <span class="badge bg-primary"><?= count($usersList) ?> Pengguna</span>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th class="ps-4" style="width: 50px;">No</th>
-                        <th>Nama Pengguna</th>
-                        <th>Email Resmi</th>
-                        <th style="width: 130px;">Peran (Role)</th>
-                        <th style="width: 140px;">NPM Mahasiswa</th>
-                        <th style="width: 160px;">Terdaftar</th>
-                        <th class="text-end pe-4" style="width: 190px;">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (empty($usersList)): ?>
-                        <tr><td colspan="7" class="text-center py-4 text-muted">Tidak ada data pengguna yang ditemukan.</td></tr>
-                    <?php else: ?>
-                        <?php $no = 1; foreach ($usersList as $u): ?>
-                            <tr>
-                                <td class="ps-4 text-muted small"><?= $no++ ?></td>
-                                <td>
-                                    <strong class="text-dark d-block"><?= e($u['nama']) ?></strong>
-                                    <?php if ((int)$u['id'] === (int)$currentUser['id']): ?>
-                                        <span class="badge bg-warning text-dark small" style="font-size: 0.65rem;">Akun Anda</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td><code><?= e($u['email']) ?></code></td>
-                                <td>
-                                    <?php if ($u['role'] === 'admin'): ?>
-                                        <span class="badge bg-dark"><i class="bi bi-shield-fill me-1"></i>Admin</span>
-                                    <?php elseif ($u['role'] === 'admin_jurusan'): ?>
-                                        <span class="badge bg-info text-dark"><i class="bi bi-building me-1"></i>Admin Jurusan</span>
-                                        <small class="d-block text-muted"><?= e($u['jurusan_admin'] ?? 'Belum ditetapkan') ?></small>
-                                    <?php elseif ($u['role'] === 'dosen'): ?>
-                                        <span class="badge bg-success"><i class="bi bi-person-video3 me-1"></i>Dosen</span>
-                                    <?php else: ?>
-                                        <span class="badge bg-primary"><i class="bi bi-mortarboard-fill me-1"></i>Mahasiswa</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td><?= $u['npm_display'] ? e($u['npm_display']) : '<span class="text-muted">-</span>' ?></td>
-                                <td class="small text-muted"><?= format_datetime($u['created_at']) ?></td>
-                                <td class="text-end pe-4">
-                                    <!-- Edit User -->
-                                    <button type="button" class="btn btn-sm btn-outline-primary btn-edit-user me-1"
-                                            data-id="<?= $u['id'] ?>"
-                                            data-nama="<?= e($u['nama']) ?>"
-                                            data-email="<?= e($u['email']) ?>"
-                                            data-role="<?= e($u['role']) ?>"
-                                            data-npm="<?= e($u['npm_display'] ?? '') ?>"
-                                            data-jurusan="<?= (int)($u['id_jurusan'] ?? 0) ?>"
-                                            title="Edit Pengguna">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <!-- Reset Password -->
-                                    <button type="button" class="btn btn-sm btn-outline-warning text-dark btn-reset-pass me-1"
-                                            data-id="<?= $u['id'] ?>"
-                                            data-nama="<?= e($u['nama']) ?>"
-                                            title="Reset Kata Sandi">
-                                        <i class="bi bi-key-fill"></i>
-                                    </button>
-                                    <!-- Hapus User -->
-                                    <?php if ((int)$u['id'] !== (int)$currentUser['id']): ?>
-                                        <form action="<?= BASE_URL ?>/admin/users.php" method="POST" class="d-inline">
-                                            <?= csrf_field() ?>
-                                            <input type="hidden" name="action" value="delete">
-                                            <input type="hidden" name="id" value="<?= $u['id'] ?>">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" 
-                                                    data-confirm="Apakah Anda yakin ingin menghapus pengguna '<?= e($u['nama']) ?>'?" title="Hapus Pengguna">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
+<div class="modal fade" id="editAdminModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow">
+        <form method="POST">
+            <?= csrf_field() ?><input type="hidden" name="action" value="update"><input type="hidden" name="id" id="editAdminId">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold">Edit Admin Jurusan</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <label class="form-label" for="editAdminName">Nama lengkap</label>
+                <input class="form-control mb-3" id="editAdminName" name="nama" maxlength="100" required>
+                <label class="form-label" for="editAdminEmail">Email akun</label>
+                <input class="form-control mb-3" id="editAdminEmail" name="email" type="email" maxlength="100" required>
+                <label class="form-label" for="editAdminDepartment">Jurusan yang dikelola</label>
+                <select class="form-select" id="editAdminDepartment" name="id_jurusan" required>
+                    <?php foreach ($departments as $department): ?><option value="<?= (int)$department['id'] ?>"><?= e($department['nama_jurusan']) ?></option><?php endforeach; ?>
+                </select>
+            </div>
+            <div class="modal-footer"><button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Batal</button><button class="btn btn-polinela" type="submit">Simpan Perubahan</button></div>
+        </form>
+    </div></div>
 </div>
 
-<!-- Modal Tambah Pengguna -->
-<div class="modal fade" id="modalTambahUser" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <form action="<?= BASE_URL ?>/admin/users.php" method="POST">
-                <?= csrf_field() ?>
-                <input type="hidden" name="action" value="create">
-
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-person-plus-fill me-2"></i>Tambah Pengguna Baru</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold text-secondary">Nama Lengkap *</label>
-                        <input type="text" class="form-control" name="nama" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold text-secondary">Alamat Email *</label>
-                        <input type="email" class="form-control" name="email" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold text-secondary">Kata Sandi Awal *</label>
-                        <input type="password" class="form-control" name="password" placeholder="Minimal 6 karakter" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold text-secondary">Peran Akun *</label>
-                        <select class="form-select" name="role" id="roleSelectorCreate" required>
-                            <option value="mahasiswa">Mahasiswa</option>
-                            <option value="dosen">Dosen</option>
-                            <option value="admin">Administrator</option>
-                            <option value="admin_jurusan">Admin Jurusan</option>
-                        </select>
-                    </div>
-                    <div class="mb-3 d-none" id="jurusanGroupCreate">
-                        <label class="form-label small fw-semibold text-secondary">Jurusan yang dikelola *</label>
-                        <select class="form-select" name="id_jurusan" id="jurusanCreate">
-                            <option value="">Pilih jurusan</option>
-                            <?php foreach ($jurusanOptions as $option): ?>
-                                <option value="<?= (int)$option['id'] ?>"><?= e($option['nama_jurusan']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="mb-3" id="npmGroupCreate">
-                        <label class="form-label small fw-semibold text-secondary">NPM (Khusus Mahasiswa)</label>
-                        <input type="text" class="form-control" name="npm" placeholder="Contoh: DEMO0099">
-                    </div>
-                </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-polinela btn-sm px-3"><i class="bi bi-save me-1"></i>Simpan Pengguna</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Edit Pengguna -->
-<div class="modal fade" id="modalEditUser" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <form action="<?= BASE_URL ?>/admin/users.php" method="POST">
-                <?= csrf_field() ?>
-                <input type="hidden" name="action" value="update">
-                <input type="hidden" name="id" id="edit_user_id" value="">
-
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2"></i>Edit Data Pengguna</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold text-secondary">Nama Lengkap *</label>
-                        <input type="text" class="form-control" name="nama" id="edit_nama" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold text-secondary">Alamat Email *</label>
-                        <input type="email" class="form-control" name="email" id="edit_email" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold text-secondary">Peran Akun *</label>
-                        <select class="form-select" name="role" id="edit_role" required>
-                            <option value="mahasiswa">Mahasiswa</option>
-                            <option value="dosen">Dosen</option>
-                            <option value="admin">Administrator</option>
-                            <option value="admin_jurusan">Admin Jurusan</option>
-                        </select>
-                    </div>
-                    <div class="mb-3 d-none" id="jurusanGroupEdit">
-                        <label class="form-label small fw-semibold text-secondary">Jurusan yang dikelola *</label>
-                        <select class="form-select" name="id_jurusan" id="jurusanEdit">
-                            <option value="">Pilih jurusan</option>
-                            <?php foreach ($jurusanOptions as $option): ?>
-                                <option value="<?= (int)$option['id'] ?>"><?= e($option['nama_jurusan']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="mb-3" id="npmGroupEdit">
-                        <label class="form-label small fw-semibold text-secondary">NPM (Khusus Mahasiswa)</label>
-                        <input type="text" class="form-control" name="npm" id="edit_npm">
-                    </div>
-                </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary btn-sm px-3"><i class="bi bi-check-lg me-1"></i>Simpan Perubahan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Reset Password Pengguna -->
-<div class="modal fade" id="modalResetPassword" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <form action="<?= BASE_URL ?>/admin/users.php" method="POST">
-                <?= csrf_field() ?>
-                <input type="hidden" name="action" value="reset_password">
-                <input type="hidden" name="id" id="reset_user_id" value="">
-
-                <div class="modal-header bg-warning text-dark">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-key-fill me-2"></i>Reset Kata Sandi Pengguna</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <p class="small text-muted mb-3">
-                        Mengatur ulang kata sandi untuk akun: <strong class="text-dark" id="reset_user_name"></strong>.
-                    </p>
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold text-secondary">Kata Sandi Baru *</label>
-                        <input type="password" class="form-control" name="new_password" placeholder="Minimal 6 karakter" required>
-                    </div>
-                </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-warning text-dark btn-sm px-3 fw-bold"><i class="bi bi-check2 me-1"></i>Reset Sandi Sekarang</button>
-                </div>
-            </form>
-        </div>
-    </div>
+<div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow">
+        <form method="POST">
+            <?= csrf_field() ?><input type="hidden" name="action" value="reset_password"><input type="hidden" name="id" id="resetAdminId">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title fw-bold">Reset Kata Sandi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p>Reset sandi akun <strong id="resetAdminName"></strong>. Admin diwajibkan mengganti sandi saat login berikutnya.</p>
+                <label class="form-label" for="resetAdminPassword">Kata sandi baru</label>
+                <input class="form-control" id="resetAdminPassword" name="new_password" type="password" minlength="6" required>
+            </div>
+            <div class="modal-footer"><button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Batal</button><button class="btn btn-warning" type="submit">Reset Sandi</button></div>
+        </form>
+    </div></div>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    // Edit User Modal
-    const editBtns = document.querySelectorAll('.btn-edit-user');
-    const editModal = new bootstrap.Modal(document.getElementById('modalEditUser'));
-    editBtns.forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            document.getElementById('edit_user_id').value = this.getAttribute('data-id');
-            document.getElementById('edit_nama').value = this.getAttribute('data-nama');
-            document.getElementById('edit_email').value = this.getAttribute('data-email');
-            const role = this.getAttribute('data-role');
-            document.getElementById('edit_role').value = role;
-            document.getElementById('edit_npm').value = this.getAttribute('data-npm') || '';
-            const jurusanEdit = document.getElementById('jurusanEdit');
-            jurusanEdit.value = this.getAttribute('data-jurusan') || '';
-            document.getElementById('npmGroupEdit').classList.toggle('d-none', role !== 'mahasiswa');
-            document.getElementById('jurusanGroupEdit').classList.toggle('d-none', role !== 'admin_jurusan');
-            jurusanEdit.required = role === 'admin_jurusan';
-            editModal.show();
-        });
-    });
-
-    // Reset Password Modal
-    const resetBtns = document.querySelectorAll('.btn-reset-pass');
-    const resetModal = new bootstrap.Modal(document.getElementById('modalResetPassword'));
-    resetBtns.forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            document.getElementById('reset_user_id').value = this.getAttribute('data-id');
-            document.getElementById('reset_user_name').textContent = this.getAttribute('data-nama');
-            resetModal.show();
-        });
-    });
-
-    // Toggle NPM display on role change (create modal)
-    const roleSelectCreate = document.getElementById('roleSelectorCreate');
-    const npmGroupCreate = document.getElementById('npmGroupCreate');
-    if (roleSelectCreate && npmGroupCreate) {
-        const jurusanGroupCreate = document.getElementById('jurusanGroupCreate');
-        const jurusanCreate = document.getElementById('jurusanCreate');
-        const updateCreateFields = function () {
-            npmGroupCreate.classList.toggle('d-none', roleSelectCreate.value !== 'mahasiswa');
-            jurusanGroupCreate.classList.toggle('d-none', roleSelectCreate.value !== 'admin_jurusan');
-            jurusanCreate.required = roleSelectCreate.value === 'admin_jurusan';
-        };
-        roleSelectCreate.addEventListener('change', updateCreateFields);
-        updateCreateFields();
-    }
-
-    // Toggle NPM display on role change (edit modal)
-    const editRole = document.getElementById('edit_role');
-    const npmGroupEdit = document.getElementById('npmGroupEdit');
-    if (editRole && npmGroupEdit) {
-        editRole.addEventListener('change', function () {
-            npmGroupEdit.classList.toggle('d-none', this.value !== 'mahasiswa');
-            const jurusanGroupEdit = document.getElementById('jurusanGroupEdit');
-            const jurusanEdit = document.getElementById('jurusanEdit');
-            jurusanGroupEdit.classList.toggle('d-none', this.value !== 'admin_jurusan');
-            jurusanEdit.required = this.value === 'admin_jurusan';
-        });
-    }
+document.getElementById('editAdminModal').addEventListener('show.bs.modal', function (event) {
+    const button = event.relatedTarget;
+    this.querySelector('#editAdminId').value = button.dataset.id;
+    this.querySelector('#editAdminName').value = button.dataset.nama;
+    this.querySelector('#editAdminEmail').value = button.dataset.email;
+    this.querySelector('#editAdminDepartment').value = button.dataset.jurusan;
+});
+document.getElementById('resetPasswordModal').addEventListener('show.bs.modal', function (event) {
+    const button = event.relatedTarget;
+    this.querySelector('#resetAdminId').value = button.dataset.id;
+    this.querySelector('#resetAdminName').textContent = button.dataset.nama;
+    this.querySelector('#resetAdminPassword').value = '';
 });
 </script>
 

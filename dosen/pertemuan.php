@@ -168,7 +168,7 @@ $statusLabels = [
 ];
 $typeLabels = [
     'konsultasi' => 'Konsultasi akademik',
-    'bimbingan' => 'Bimbingan',
+    'bimbingan' => 'Bimbingan umum',
     'pribadi' => 'Konsultasi pribadi',
 ];
 
@@ -190,7 +190,7 @@ require_once __DIR__ . '/../includes/header.php';
     <div class="card-header card-header-polinela fw-bold">Rekap Aktivitas Pertemuan per Semester</div>
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
-            <thead class="table-light"><tr><th class="ps-4">Periode kelas saat pengajuan</th><th>Permintaan</th><th>Terlaksana</th><th>Mahasiswa unik formal</th><th>Konsultasi selesai</th><th>Bimbingan selesai</th><th>Pribadi selesai</th></tr></thead>
+            <thead class="table-light"><tr><th class="ps-4">Periode kelas saat pengajuan</th><th>Permintaan</th><th>Terlaksana</th><th>Mahasiswa unik formal</th><th>Konsultasi selesai</th><th>Bimbingan umum selesai</th><th>Pribadi selesai</th></tr></thead>
             <tbody>
             <?php if (!$summaries): ?>
                 <tr><td colspan="7" class="text-center text-muted p-4">Belum ada data pertemuan.</td></tr>

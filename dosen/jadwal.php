@@ -202,7 +202,7 @@ require_once __DIR__ . '/../includes/header.php';
 <div class="row align-items-center mb-4">
     <div class="col-md-7">
         <h3 class="fw-bold text-dark mb-1"><i class="bi bi-calendar3 me-2 text-success"></i>Jadwal Mengajar Anda</h3>
-        <p class="text-secondary small mb-0">Kelola jadwal kuliah mingguan. Sistem otomatis mencegah bentrok waktu dengan slot bimbingan/konsultasi.</p>
+        <p class="text-secondary small mb-0">Kelola jadwal kuliah mingguan. Sistem otomatis mencegah bentrok waktu dengan slot konsultasi dan bimbingan umum.</p>
     </div>
     <div class="col-md-5 text-md-end mt-3 mt-md-0">
         <a class="btn btn-outline-success shadow-sm me-1" href="<?= BASE_URL ?>/dosen/jadwal-import.php">

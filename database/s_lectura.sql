@@ -37,6 +37,7 @@ CREATE TABLE `users` (
   `email` VARCHAR(100) NOT NULL UNIQUE,
   `password_hash` VARCHAR(255) NOT NULL,
   `role` ENUM('mahasiswa', 'dosen', 'admin', 'admin_jurusan') NOT NULL,
+  `aktif` TINYINT(1) NOT NULL DEFAULT 1,
   `must_change_password` TINYINT(1) NOT NULL DEFAULT 1,
   `npm` VARCHAR(20) NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -125,6 +126,7 @@ CREATE TABLE `mahasiswa` (
   `npm` VARCHAR(20) NOT NULL UNIQUE,
   `id_kelas` INT NULL,
   `id_prodi` INT NOT NULL,
+  `foto` VARCHAR(255) NULL,
   CONSTRAINT `fk_mhs_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_mhs_kelas` FOREIGN KEY (`id_kelas`) REFERENCES `kelas` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_mhs_prodi` FOREIGN KEY (`id_prodi`) REFERENCES `program_studi` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE

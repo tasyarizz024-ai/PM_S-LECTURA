@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([':email' => $identifier, ':npm' => $identifier]);
             $user = $stmt->fetch();
 
-            if ($user && password_verify($password, $user['password_hash'])) {
+            if ($user && (int)$user['aktif'] === 1 && password_verify($password, $user['password_hash'])) {
                 // Ambil npm dari tabel mahasiswa jika role mahasiswa
                 if ($user['role'] === 'mahasiswa') {
                     $stmtNpm = $pdo->prepare("SELECT npm FROM mahasiswa WHERE user_id = :uid LIMIT 1");
@@ -165,7 +165,7 @@ require_once __DIR__ . '/includes/header.php';
                 <div class="text-center pt-3 border-top mt-4">
                     <p class="small text-muted mb-0">
                         <i class="bi bi-shield-check text-success me-1"></i>
-                        Akun Mahasiswa dan Dosen dikelola langsung oleh Akademik POLINELA.
+                        Akun Mahasiswa dan Dosen disiapkan oleh admin kampus atau admin jurusan.
                     </p>
                 </div>
             </div>

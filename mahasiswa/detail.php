@@ -48,7 +48,7 @@ $stmtDosen = $pdo->prepare("SELECT d.*, u.nama, u.email, p.nama_prodi, j.nama_ju
                             JOIN program_studi p ON d.id_prodi = p.id
                             JOIN jurusan j ON j.id = p.id_jurusan
                             LEFT JOIN status_ketersediaan sk ON d.id = sk.id_dosen
-                            WHERE d.id = :id AND p.id_jurusan = :jurusan LIMIT 1");
+                            WHERE d.id = :id AND p.id_jurusan = :jurusan AND u.aktif = 1 LIMIT 1");
 $stmtDosen->execute([':id' => $idDosen, ':jurusan' => $mahasiswa['id_jurusan']]);
 $dosen = $stmtDosen->fetch();
 
@@ -177,7 +177,7 @@ $stmtKonsul = $pdo->prepare("SELECT * FROM slot_konsultasi WHERE id_dosen = :id 
 $stmtKonsul->execute([':id' => $idDosen]);
 $konsulList = $stmtKonsul->fetchAll();
 
-// 4. Ambil Slot Bimbingan Tugas Akhir Aktif
+// 4. Ambil Slot Bimbingan Umum Aktif
 $stmtBimbingan = $pdo->prepare("SELECT * FROM slot_konsultasi WHERE id_dosen = :id AND jenis = 'bimbingan' AND aktif = 1 ORDER BY {$orderHariSlot}, jam_mulai ASC");
 $stmtBimbingan->execute([':id' => $idDosen]);
 $bimbinganList = $stmtBimbingan->fetchAll();
@@ -385,18 +385,18 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
     </div>
 
-    <!-- 3. Slot Bimbingan Tugas Akhir -->
+    <!-- 3. Slot Bimbingan Umum -->
     <div class="col-lg-6">
         <div class="card card-custom border-0 shadow-sm h-100">
             <div class="card-header card-header-polinela d-flex justify-content-between align-items-center py-3">
-                <span class="fw-bold"><i class="bi bi-mortarboard-fill me-2 text-info"></i>Slot Bimbingan Tugas Akhir / PKL</span>
+                <span class="fw-bold"><i class="bi bi-chat-dots-fill me-2 text-info"></i>Slot Bimbingan Umum</span>
                 <span class="badge bg-info text-dark"><?= count($bimbinganList) ?> Slot Aktif</span>
             </div>
             <div class="card-body p-0">
                 <?php if (empty($bimbinganList)): ?>
                     <div class="text-center py-4 px-3">
                         <i class="bi bi-journal-text fs-2 text-muted d-block mb-2"></i>
-                        <p class="text-muted small mb-0">Saat ini tidak ada slot bimbingan tugas akhir yang dibuka dosen.</p>
+                        <p class="text-muted small mb-0">Saat ini tidak ada slot bimbingan umum yang dibuka dosen.</p>
                     </div>
                 <?php else: ?>
                     <div class="list-group list-group-flush">
@@ -410,7 +410,7 @@ require_once __DIR__ . '/../includes/header.php';
                                 </div>
                                 <div class="small text-secondary mt-2">
                                     <strong class="text-dark">Persyaratan / Catatan:</strong>
-                                    <?= !empty($b['catatan']) ? e($b['catatan']) : '<span class="text-muted fst-italic">Membawa lembar asistensi dan draf laporan tugas akhir</span>' ?>
+                                    <?= !empty($b['catatan']) ? e($b['catatan']) : '<span class="text-muted fst-italic">Siapkan topik atau dokumen yang ingin dikonsultasikan.</span>' ?>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -438,7 +438,7 @@ require_once __DIR__ . '/../includes/header.php';
                     <label class="form-label" for="jenis">Jenis pertemuan</label>
                     <select class="form-select" id="jenis" name="jenis" required>
                         <option value="konsultasi">Konsultasi akademik</option>
-                        <option value="bimbingan">Bimbingan</option>
+                        <option value="bimbingan">Bimbingan umum</option>
                         <option value="pribadi">Konsultasi pribadi</option>
                     </select>
                 </div>
@@ -537,7 +537,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <div>
                     <h6 class="fw-bold text-dark mb-1">Etika Menemui Dosen Politeknik Negeri Lampung</h6>
                     <p class="small text-muted mb-0">
-                        Pastikan Anda datang sesuai dengan slot konsultasi atau bimbingan yang telah ditentukan. Datang tanpa jadwal dapat mengganggu waktu mengajar dan penelitian dosen. S-LECTURA menjaga privasi dosen tanpa pelacakan fisik ruangan secara real-time.
+                        Pastikan Anda datang sesuai dengan slot konsultasi atau bimbingan umum yang telah ditentukan. Datang tanpa jadwal dapat mengganggu waktu mengajar dan penelitian dosen. S-LECTURA menjaga privasi dosen tanpa pelacakan fisik ruangan secara real-time.
                     </p>
                 </div>
             </div>

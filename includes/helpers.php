@@ -181,7 +181,7 @@ function status_badge(string $status): string {
         'Tersedia' => '<span class="badge bg-success px-2 py-1"><i class="bi bi-check-circle-fill me-1"></i>Tersedia</span>',
         'Mengajar' => '<span class="badge bg-primary px-2 py-1"><i class="bi bi-book-half me-1"></i>Sedang Mengajar</span>',
         'Hanya Konsultasi' => '<span class="badge bg-warning text-dark px-2 py-1"><i class="bi bi-chat-text-fill me-1"></i>Hanya Konsultasi</span>',
-        'Hanya Bimbingan' => '<span class="badge bg-info text-dark px-2 py-1"><i class="bi bi-mortarboard-fill me-1"></i>Hanya Bimbingan TA</span>',
+        'Hanya Bimbingan' => '<span class="badge bg-info text-dark px-2 py-1"><i class="bi bi-chat-dots-fill me-1"></i>Hanya Bimbingan Umum</span>',
         'Tidak Tersedia' => '<span class="badge bg-secondary px-2 py-1"><i class="bi bi-x-circle-fill me-1"></i>Tidak Tersedia</span>',
         default => '<span class="badge bg-light text-dark px-2 py-1">' . e($status) . '</span>',
     };
@@ -270,7 +270,7 @@ function check_time_collision(
     $conflictSlot = $stmtSlot->fetch();
 
     if ($conflictSlot) {
-        $jenisLabel = $conflictSlot['jenis'] === 'bimbingan' ? 'Bimbingan TA' : 'Konsultasi';
+        $jenisLabel = $conflictSlot['jenis'] === 'bimbingan' ? 'Bimbingan umum' : 'Konsultasi';
         $mulai   = substr($conflictSlot['jam_mulai'],   0, 5);
         $selesai = substr($conflictSlot['jam_selesai'], 0, 5);
         return "Waktu bentrok dengan Slot {$jenisLabel} hari {$hari} pukul {$mulai}–{$selesai} WIB.";

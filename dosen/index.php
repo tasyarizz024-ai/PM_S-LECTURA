@@ -88,7 +88,7 @@ require_once __DIR__ . '/../includes/header.php';
 <!-- Banner Sambutan Dosen -->
 <div class="row mb-4">
     <div class="col-12">
-        <div class="card card-custom border-0 p-4 bg-white shadow-sm">
+        <div class="card card-custom dashboard-welcome-card border-0 p-4 shadow-sm">
             <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
                 <div class="d-flex align-items-center gap-3">
                     <?php if (!empty($dosen['foto']) && file_exists(__DIR__ . '/../' . $dosen['foto'])): ?>
@@ -262,7 +262,7 @@ require_once __DIR__ . '/../includes/header.php';
     <div class="col-md-4">
         <div class="card stat-card bg-info shadow-sm">
             <div class="card-body">
-                <span class="fw-semibold text-white-50 text-uppercase small">Slot Bimbingan TA Aktif</span>
+                <span class="fw-semibold text-white-50 text-uppercase small">Slot Bimbingan Umum Aktif</span>
                 <h2 class="fw-bold text-white mb-0"><?= $totalBimbingan ?> <span class="fs-6 fw-normal">Slot</span></h2>
                 <div class="mt-2">
                     <a href="<?= BASE_URL ?>/dosen/slot.php" class="text-white text-decoration-none small fw-semibold">
@@ -331,7 +331,7 @@ require_once __DIR__ . '/../includes/header.php';
                                     <div class="list-group-item px-0 d-flex justify-content-between align-items-start">
                                         <div>
                                             <span class="badge <?= $s['jenis'] === 'bimbingan' ? 'bg-info text-dark' : 'bg-warning text-dark' ?> me-1">
-                                                <?= $s['jenis'] === 'bimbingan' ? 'Bimbingan TA' : 'Konsultasi' ?>
+                                                <?= $s['jenis'] === 'bimbingan' ? 'Bimbingan umum' : 'Konsultasi' ?>
                                             </span>
                                             <?php if (!empty($s['catatan'])): ?>
                                                 <small class="text-muted d-block mt-1"><?= e($s['catatan']) ?></small>

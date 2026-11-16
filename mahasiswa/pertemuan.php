@@ -120,7 +120,7 @@ $statusLabels = [
 ];
 $typeLabels = [
     'konsultasi' => 'Konsultasi akademik',
-    'bimbingan' => 'Bimbingan',
+    'bimbingan' => 'Bimbingan umum',
     'pribadi' => 'Konsultasi pribadi',
 ];
 

@@ -49,8 +49,9 @@ function schedule_xlsx_parse_xml(string $xml, string $errorMessage): SimpleXMLEl
     }
 }
 
-function schedule_xlsx_read(string $path): array
+function schedule_xlsx_read(string $path, ?array $expectedHeaders = null): array
 {
+    $expectedHeaders = $expectedHeaders ?? schedule_xlsx_headers();
     $zip = new ZipArchive();
     if ($zip->open($path) !== true) {
         throw new RuntimeException('File bukan Excel .xlsx yang valid.');
@@ -93,7 +94,7 @@ function schedule_xlsx_read(string $path): array
     $sheet->registerXPathNamespace('m', $namespace);
     $xmlRows = $sheet->xpath('/m:worksheet/m:sheetData/m:row');
     if (!$xmlRows || count($xmlRows) > 501) {
-        throw new RuntimeException('File harus berisi header dan paling banyak 500 baris jadwal.');
+        throw new RuntimeException('File harus berisi header dan paling banyak 500 baris data.');
     }
 
     $rows = [];
@@ -132,7 +133,6 @@ function schedule_xlsx_read(string $path): array
     }
 
     $header = array_values($rows[0]);
-    $expectedHeaders = schedule_xlsx_headers();
     if ($header !== $expectedHeaders) {
         throw new RuntimeException('Header tidak sesuai template. Unduh template Excel dan jangan ubah nama atau urutan kolom.');
     }
@@ -159,9 +159,9 @@ function schedule_xlsx_read(string $path): array
     return $result;
 }
 
-function schedule_xlsx_template(): string
+function schedule_xlsx_template(?array $headers = null, string $sheetName = 'Jadwal'): string
 {
-    $headers = schedule_xlsx_headers();
+    $headers = $headers ?? schedule_xlsx_headers();
     $cells = [];
     foreach ($headers as $index => $header) {
         $number = $index + 1;
@@ -189,7 +189,7 @@ function schedule_xlsx_template(): string
             . '</Relationships>',
         'xl/workbook.xml' => '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
             . '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
-            . '<sheets><sheet name="Jadwal" sheetId="1" r:id="rId1"/></sheets></workbook>',
+            . '<sheets><sheet name="' . htmlspecialchars($sheetName, ENT_XML1 | ENT_QUOTES, 'UTF-8') . '" sheetId="1" r:id="rId1"/></sheets></workbook>',
         'xl/_rels/workbook.xml.rels' => '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
             . '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
             . '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'

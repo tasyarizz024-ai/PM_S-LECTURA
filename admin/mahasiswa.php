@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/helpers.php';
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/user_import.php';
 
 require_role('admin_jurusan');
 
@@ -21,81 +22,6 @@ if (!$jurusanScope) {
 }
 $jurusan = (int)$jurusanScope['id_jurusan'];
 
-$errors = [];
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
-        $errors[] = 'Sesi form tidak valid. Muat ulang halaman dan coba lagi.';
-    } else {
-        $studentUserId = (int)($_POST['user_id'] ?? 0);
-        $action = $_POST['action'] ?? '';
-        $stmtStudent = $pdo->prepare(
-            "SELECT u.id
-             FROM users u
-             JOIN mahasiswa m ON m.user_id = u.id
-             JOIN program_studi p ON p.id = m.id_prodi
-             WHERE u.id = :id AND u.role = 'mahasiswa' AND p.id_jurusan = :jurusan
-             LIMIT 1"
-        );
-        $stmtStudent->execute([':id' => $studentUserId, ':jurusan' => $jurusan]);
-        if (!$stmtStudent->fetchColumn()) {
-            $errors[] = 'Mahasiswa tidak ditemukan dalam cakupan jurusan Anda.';
-        } elseif ($action === 'update_email') {
-            $email = trim($_POST['email'] ?? '');
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                $errors[] = 'Alamat email tidak valid.';
-            } else {
-                $stmtDuplicate = $pdo->prepare("SELECT id FROM users WHERE email = :email AND id != :id LIMIT 1");
-                $stmtDuplicate->execute([':email' => $email, ':id' => $studentUserId]);
-                if ($stmtDuplicate->fetchColumn()) {
-                    $errors[] = 'Email sudah digunakan akun lain.';
-                } else {
-                    $stmtUpdate = $pdo->prepare(
-                        "UPDATE users u
-                         JOIN mahasiswa m ON m.user_id = u.id
-                         JOIN program_studi p ON p.id = m.id_prodi
-                         SET u.email = :email
-                         WHERE u.id = :id AND u.role = 'mahasiswa' AND p.id_jurusan = :jurusan"
-                    );
-                    $stmtUpdate->execute([
-                        ':email' => $email,
-                        ':id' => $studentUserId,
-                        ':jurusan' => $jurusan,
-                    ]);
-                    set_flash('success', 'Email mahasiswa berhasil diperbarui.');
-                    redirect(BASE_URL . '/admin/mahasiswa.php');
-                }
-            }
-        } elseif ($action === 'reset_password') {
-            $temporaryPassword = bin2hex(random_bytes(6));
-            $passwordHash = password_hash($temporaryPassword, PASSWORD_DEFAULT);
-            $stmtUpdate = $pdo->prepare(
-                "UPDATE users u
-                 JOIN mahasiswa m ON m.user_id = u.id
-                 JOIN program_studi p ON p.id = m.id_prodi
-                 SET u.password_hash = :password_hash, u.must_change_password = 1
-                 WHERE u.id = :id AND u.role = 'mahasiswa' AND p.id_jurusan = :jurusan"
-            );
-            $stmtUpdate->execute([
-                ':password_hash' => $passwordHash,
-                ':id' => $studentUserId,
-                ':jurusan' => $jurusan,
-            ]);
-            if ($stmtUpdate->rowCount() === 1) {
-                set_flash(
-                    'success',
-                    'Sandi sementara: ' . $temporaryPassword . '. Berikan secara pribadi kepada mahasiswa; sandi baru wajib dibuat saat login.'
-                );
-                redirect(BASE_URL . '/admin/mahasiswa.php');
-            }
-            $errors[] = 'Mahasiswa tidak lagi berada dalam cakupan jurusan Anda.';
-        } else {
-            $errors[] = 'Aksi bantuan akun tidak valid.';
-        }
-    }
-}
-
-$search = trim($_GET['q'] ?? '');
-$filterProdi = (int)($_GET['prodi'] ?? 0);
 $stmtProdi = $pdo->prepare(
     "SELECT id, nama_prodi FROM program_studi
      WHERE id_jurusan = :jurusan
@@ -104,19 +30,309 @@ $stmtProdi = $pdo->prepare(
 $stmtProdi->execute([':jurusan' => $jurusan]);
 $prodiList = $stmtProdi->fetchAll();
 $validProdiIds = array_map(static fn($prodi) => (int)$prodi['id'], $prodiList);
-if ($filterProdi > 0 && !in_array($filterProdi, $validProdiIds, true)) {
-    $filterProdi = 0;
+$selectedProdi = (int)($_POST['prodi'] ?? $_GET['prodi'] ?? 0);
+if (!in_array($selectedProdi, $validProdiIds, true)) {
+    $selectedProdi = 0;
 }
 
-$sql = "SELECT u.id, u.nama, u.email, m.npm, p.nama_prodi
+if (($_GET['template'] ?? '') === 'users') {
+    $importRole = (string)($_GET['role'] ?? '');
+    if ($selectedProdi <= 0) {
+        set_flash('danger', 'Pilih program studi yang valid untuk mengunduh template akun.');
+        redirect(BASE_URL . '/admin/mahasiswa.php');
+    }
+    if (!in_array($importRole, ['mahasiswa', 'dosen'], true)) {
+        set_flash('danger', 'Pilih jenis akun yang valid untuk mengunduh template.');
+        redirect(BASE_URL . '/admin/mahasiswa.php?prodi=' . $selectedProdi);
+    }
+    $template = schedule_xlsx_template(user_xlsx_headers($importRole), ucfirst($importRole));
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header('Content-Disposition: attachment; filename="template-' . $importRole . '.xlsx"');
+    header('Content-Length: ' . strlen($template));
+    echo $template;
+    exit;
+}
+
+$errors = [];
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
+        $errors[] = 'Sesi form tidak valid. Muat ulang halaman dan coba lagi.';
+    } else {
+        $action = $_POST['action'] ?? '';
+        if ($action === 'import_users') {
+            $importRole = (string)($_POST['import_role'] ?? '');
+            if (!in_array($importRole, ['mahasiswa', 'dosen'], true)) {
+                $errors[] = 'Pilih jenis akun mahasiswa atau dosen.';
+            } elseif ($selectedProdi <= 0) {
+                $errors[] = 'Pilih program studi sebelum mengimpor akun.';
+            } elseif (!isset($_FILES['file_excel']) || $_FILES['file_excel']['error'] !== UPLOAD_ERR_OK) {
+                $errors[] = 'File Excel gagal diunggah.';
+            } elseif ($_FILES['file_excel']['size'] > 5 * 1024 * 1024) {
+                $errors[] = 'Ukuran file maksimal 5 MB.';
+            } elseif (strtolower(pathinfo($_FILES['file_excel']['name'], PATHINFO_EXTENSION)) !== 'xlsx') {
+                $errors[] = 'Gunakan file Excel .xlsx.';
+            } else {
+                try {
+                    $rows = schedule_xlsx_read($_FILES['file_excel']['tmp_name'], user_xlsx_headers($importRole));
+                    $result = validate_user_import($pdo, $rows, $selectedProdi, $importRole);
+                    $errors = $result['errors'];
+                    if (!$errors) {
+                        $pdo->beginTransaction();
+                        try {
+                            $credentials = insert_user_import($pdo, $result['rows'], $selectedProdi);
+                            $pdo->commit();
+                            $_SESSION['user_import_credentials'] = $credentials;
+                            set_flash('success', count($credentials) . ' akun berhasil diimpor. Simpan sandi sementara sebelum meninggalkan halaman ini.');
+                            redirect(BASE_URL . '/admin/mahasiswa.php?prodi=' . $selectedProdi);
+                        } catch (Throwable $exception) {
+                            if ($pdo->inTransaction()) {
+                                $pdo->rollBack();
+                            }
+                            error_log('User import failed for department admin ' . $user['id'] . ': ' . $exception->getMessage());
+                            $errors[] = 'Import dibatalkan karena ada data yang berubah atau ditolak database. Tidak ada akun yang dibuat; periksa data lalu coba lagi.';
+                        }
+                    }
+                } catch (RuntimeException $exception) {
+                    $errors[] = $exception->getMessage();
+                }
+            }
+        } elseif ($selectedProdi <= 0) {
+            $errors[] = 'Pilih program studi terlebih dahulu.';
+        } elseif (in_array($action, ['update_lecturer', 'reset_lecturer_password', 'set_lecturer_active'], true)) {
+            $lecturerUserId = (int)($_POST['user_id'] ?? 0);
+            $stmtLecturerAccount = $pdo->prepare(
+                "SELECT u.id, u.nama
+                 FROM users u
+                 JOIN dosen d ON d.user_id = u.id
+                 WHERE u.id = :id AND u.role = 'dosen' AND d.id_prodi = :prodi
+                 LIMIT 1"
+            );
+            $stmtLecturerAccount->execute([':id' => $lecturerUserId, ':prodi' => $selectedProdi]);
+            $lecturerAccount = $stmtLecturerAccount->fetch();
+            if (!$lecturerAccount) {
+                $errors[] = 'Dosen tidak ditemukan dalam program studi yang dipilih.';
+            } elseif ($action === 'update_lecturer') {
+                $name = trim($_POST['nama'] ?? '');
+                $email = trim($_POST['email'] ?? '');
+                $nidn = trim($_POST['nidn_nip'] ?? '');
+                $expertise = trim($_POST['bidang_keahlian'] ?? '');
+                if ($name === '' || mb_strlen($name) > 100) {
+                    $errors[] = 'Nama wajib diisi dan maksimal 100 karakter.';
+                }
+                if (!filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 100) {
+                    $errors[] = 'Alamat email tidak valid atau melebihi 100 karakter.';
+                } else {
+                    $stmtDuplicateEmail = $pdo->prepare("SELECT id FROM users WHERE email = :email AND id != :id LIMIT 1");
+                    $stmtDuplicateEmail->execute([':email' => $email, ':id' => $lecturerUserId]);
+                    if ($stmtDuplicateEmail->fetchColumn()) {
+                        $errors[] = 'Email sudah digunakan akun lain.';
+                    }
+                }
+                if ($nidn !== '' && mb_strlen($nidn) > 30) {
+                    $errors[] = 'NIDN/NIP maksimal 30 karakter.';
+                } elseif ($nidn !== '') {
+                    $stmtDuplicateNidn = $pdo->prepare("SELECT id FROM dosen WHERE nidn_nip = :nidn AND user_id != :user_id LIMIT 1");
+                    $stmtDuplicateNidn->execute([':nidn' => $nidn, ':user_id' => $lecturerUserId]);
+                    if ($stmtDuplicateNidn->fetchColumn()) {
+                        $errors[] = 'NIDN/NIP sudah digunakan dosen lain.';
+                    }
+                }
+                if ($expertise === '' || mb_strlen($expertise) > 150) {
+                    $errors[] = 'Bidang keahlian wajib diisi dan maksimal 150 karakter.';
+                }
+                if (!$errors) {
+                    $pdo->beginTransaction();
+                    try {
+                        $stmtUpdate = $pdo->prepare(
+                            "UPDATE users u
+                             JOIN dosen d ON d.user_id = u.id
+                             SET u.nama = :nama, u.email = :email,
+                                 d.nidn_nip = :nidn, d.bidang_keahlian = :expertise
+                             WHERE u.id = :id AND u.role = 'dosen' AND d.id_prodi = :prodi"
+                        );
+                        $stmtUpdate->execute([
+                            ':nama' => $name,
+                            ':email' => $email,
+                            ':nidn' => $nidn !== '' ? $nidn : null,
+                            ':expertise' => $expertise,
+                            ':id' => $lecturerUserId,
+                            ':prodi' => $selectedProdi,
+                        ]);
+                        $pdo->commit();
+                        set_flash('success', 'Data dosen berhasil diperbarui.');
+                        redirect(BASE_URL . '/admin/mahasiswa.php?prodi=' . $selectedProdi);
+                    } catch (Throwable $exception) {
+                        if ($pdo->inTransaction()) {
+                            $pdo->rollBack();
+                        }
+                        error_log('Lecturer profile update failed for department admin ' . $user['id'] . ': ' . $exception->getMessage());
+                        $errors[] = 'Data dosen gagal diperbarui karena database menolak perubahan.';
+                    }
+                }
+            } elseif ($action === 'reset_lecturer_password') {
+                $birthDatePassword = user_import_password_from_birth_date($_POST['tanggal_lahir'] ?? '');
+                if ($birthDatePassword === null) {
+                    $errors[] = 'Tanggal lahir tidak valid. Masukkan tanggal DD-MM-YYYY dan pastikan bukan tanggal di masa depan.';
+                } else {
+                    $stmtUpdate = $pdo->prepare(
+                        "UPDATE users u
+                         JOIN dosen d ON d.user_id = u.id
+                         SET u.password_hash = :password_hash, u.must_change_password = 1
+                         WHERE u.id = :id AND u.role = 'dosen' AND d.id_prodi = :prodi"
+                    );
+                    $stmtUpdate->execute([
+                        ':password_hash' => password_hash($birthDatePassword, PASSWORD_DEFAULT),
+                        ':id' => $lecturerUserId,
+                        ':prodi' => $selectedProdi,
+                    ]);
+                    if ($stmtUpdate->rowCount() === 1) {
+                        set_flash('success', 'Sandi dosen berhasil direset ke tanggal lahir (' . $birthDatePassword . '). Sampaikan secara pribadi; sandi wajib diganti saat login.');
+                        redirect(BASE_URL . '/admin/mahasiswa.php?prodi=' . $selectedProdi);
+                    }
+                    $errors[] = 'Sandi tidak berubah. Pastikan tanggal lahir benar dan coba lagi.';
+                }
+            } else {
+                $active = (int)($_POST['aktif'] ?? -1);
+                if (!in_array($active, [0, 1], true)) {
+                    $errors[] = 'Status akun dosen tidak valid.';
+                } else {
+                    $stmtUpdate = $pdo->prepare(
+                        "UPDATE users u
+                         JOIN dosen d ON d.user_id = u.id
+                         SET u.aktif = :aktif
+                         WHERE u.id = :id AND u.role = 'dosen' AND d.id_prodi = :prodi"
+                    );
+                    $stmtUpdate->execute([
+                        ':aktif' => $active,
+                        ':id' => $lecturerUserId,
+                        ':prodi' => $selectedProdi,
+                    ]);
+                    if ($stmtUpdate->rowCount() === 1) {
+                        $statusLabel = $active === 1 ? 'diaktifkan' : 'dinonaktifkan';
+                        set_flash('success', 'Akun dosen ' . $lecturerAccount['nama'] . ' berhasil ' . $statusLabel . '. Jadwal dan riwayat tetap tersimpan.');
+                        redirect(BASE_URL . '/admin/mahasiswa.php?prodi=' . $selectedProdi);
+                    }
+                    $errors[] = 'Status akun dosen tidak berubah.';
+                }
+            }
+        } else {
+        $studentUserId = (int)($_POST['user_id'] ?? 0);
+        $stmtStudent = $pdo->prepare(
+            "SELECT u.id, u.nama
+             FROM users u
+             JOIN mahasiswa m ON m.user_id = u.id
+             JOIN program_studi p ON p.id = m.id_prodi
+             WHERE u.id = :id AND u.role = 'mahasiswa' AND p.id = :prodi
+             LIMIT 1"
+        );
+        $stmtStudent->execute([':id' => $studentUserId, ':prodi' => $selectedProdi]);
+        $studentAccount = $stmtStudent->fetch();
+        if (!$studentAccount) {
+            $errors[] = 'Mahasiswa tidak ditemukan dalam program studi yang dipilih.';
+        } elseif ($action === 'update_profile') {
+            $name = trim($_POST['nama'] ?? '');
+            $email = trim($_POST['email'] ?? '');
+            if ($name === '' || mb_strlen($name) > 100) {
+                $errors[] = 'Nama wajib diisi dan maksimal 100 karakter.';
+            }
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 100) {
+                $errors[] = 'Alamat email tidak valid atau melebihi 100 karakter.';
+            } else {
+                $stmtDuplicate = $pdo->prepare("SELECT id FROM users WHERE email = :email AND id != :id LIMIT 1");
+                $stmtDuplicate->execute([':email' => $email, ':id' => $studentUserId]);
+                if ($stmtDuplicate->fetchColumn()) {
+                    $errors[] = 'Email sudah digunakan akun lain.';
+                }
+            }
+            if (!$errors) {
+                $stmtUpdate = $pdo->prepare(
+                    "UPDATE users u
+                     JOIN mahasiswa m ON m.user_id = u.id
+                     SET u.nama = :nama, u.email = :email
+                     WHERE u.id = :id AND u.role = 'mahasiswa' AND m.id_prodi = :prodi"
+                );
+                $stmtUpdate->execute([
+                    ':nama' => $name,
+                    ':email' => $email,
+                    ':id' => $studentUserId,
+                    ':prodi' => $selectedProdi,
+                ]);
+                set_flash('success', 'Nama dan email mahasiswa berhasil diperbarui.');
+                redirect(BASE_URL . '/admin/mahasiswa.php?prodi=' . $selectedProdi);
+            }
+        } elseif ($action === 'reset_password') {
+            $birthDatePassword = user_import_password_from_birth_date($_POST['tanggal_lahir'] ?? '');
+            if ($birthDatePassword === null) {
+                $errors[] = 'Tanggal lahir tidak valid. Masukkan tanggal DD-MM-YYYY dan pastikan bukan tanggal di masa depan.';
+            } else {
+                $passwordHash = password_hash($birthDatePassword, PASSWORD_DEFAULT);
+                $stmtUpdate = $pdo->prepare(
+                    "UPDATE users u
+                     JOIN mahasiswa m ON m.user_id = u.id
+                     JOIN program_studi p ON p.id = m.id_prodi
+                     SET u.password_hash = :password_hash, u.must_change_password = 1
+                     WHERE u.id = :id AND u.role = 'mahasiswa' AND p.id = :prodi"
+                );
+                $stmtUpdate->execute([
+                    ':password_hash' => $passwordHash,
+                    ':id' => $studentUserId,
+                    ':prodi' => $selectedProdi,
+                ]);
+                if ($stmtUpdate->rowCount() === 1) {
+                    set_flash(
+                        'success',
+                        'Sandi mahasiswa berhasil direset ke tanggal lahir (' . $birthDatePassword . '). Sampaikan secara pribadi; sandi wajib diganti saat login.'
+                    );
+                    redirect(BASE_URL . '/admin/mahasiswa.php?prodi=' . $selectedProdi);
+                }
+                $errors[] = 'Sandi tidak berubah. Pastikan tanggal lahir benar dan coba lagi.';
+            }
+        } elseif ($action === 'set_active') {
+            $active = (int)($_POST['aktif'] ?? -1);
+            if (!in_array($active, [0, 1], true)) {
+                $errors[] = 'Status akun tidak valid.';
+            } else {
+                $stmtUpdate = $pdo->prepare(
+                    "UPDATE users u
+                     JOIN mahasiswa m ON m.user_id = u.id
+                     SET u.aktif = :aktif
+                     WHERE u.id = :id AND u.role = 'mahasiswa' AND m.id_prodi = :prodi"
+                );
+                $stmtUpdate->execute([
+                    ':aktif' => $active,
+                    ':id' => $studentUserId,
+                    ':prodi' => $selectedProdi,
+                ]);
+                if ($stmtUpdate->rowCount() === 1) {
+                    $statusLabel = $active === 1 ? 'diaktifkan' : 'dinonaktifkan';
+                    set_flash('success', 'Akun mahasiswa ' . $studentAccount['nama'] . ' berhasil ' . $statusLabel . '. Riwayat pertemuan tetap tersimpan.');
+                    redirect(BASE_URL . '/admin/mahasiswa.php?prodi=' . $selectedProdi);
+                }
+                $errors[] = 'Status akun mahasiswa tidak berubah.';
+            }
+        } else {
+            $errors[] = 'Aksi bantuan akun tidak valid.';
+        }
+        }
+    }
+}
+
+$search = trim($_GET['q'] ?? '');
+$statusFilter = (string)($_GET['status'] ?? 'aktif');
+if (!in_array($statusFilter, ['aktif', 'nonaktif', 'semua'], true)) {
+    $statusFilter = 'aktif';
+}
+$sql = "SELECT u.id, u.nama, u.email, m.npm, p.nama_prodi,
+               u.aktif,
+               (SELECT COUNT(*) FROM permintaan_pertemuan pp WHERE pp.id_mahasiswa = m.id) AS jumlah_pertemuan
         FROM users u
         JOIN mahasiswa m ON m.user_id = u.id
         JOIN program_studi p ON p.id = m.id_prodi
-        WHERE u.role = 'mahasiswa' AND p.id_jurusan = :jurusan";
-$params = [':jurusan' => $jurusan];
-if ($filterProdi > 0) {
-    $sql .= " AND p.id = :prodi";
-    $params[':prodi'] = $filterProdi;
+        WHERE u.role = 'mahasiswa' AND p.id = :prodi";
+$params = [':prodi' => $selectedProdi];
+if ($statusFilter !== 'semua') {
+    $sql .= ' AND u.aktif = :aktif';
+    $params[':aktif'] = $statusFilter === 'aktif' ? 1 : 0;
 }
 if ($search !== '') {
     $sql .= " AND (u.nama LIKE :nama_q OR u.email LIKE :email_q OR m.npm LIKE :npm_q)";
@@ -126,83 +342,452 @@ if ($search !== '') {
 }
 $sql .= ' ORDER BY u.nama';
 $stmtStudents = $pdo->prepare($sql);
-$stmtStudents->execute($params);
-$students = $stmtStudents->fetchAll();
+$students = [];
+$lecturers = [];
+$selectedProgram = null;
+$importCredentials = [];
+if ($selectedProdi > 0) {
+    $stmtStudents->execute($params);
+    $students = $stmtStudents->fetchAll();
+    $stmtLecturers = $pdo->prepare(
+        "SELECT u.id, u.nama, u.email, u.aktif, d.nidn_nip, d.bidang_keahlian,
+                (SELECT COUNT(*) FROM jadwal_mengajar jm WHERE jm.id_dosen = d.id) AS jumlah_jadwal,
+                (SELECT COUNT(*) FROM permintaan_pertemuan pp WHERE pp.id_dosen = d.id) AS jumlah_pertemuan
+         FROM dosen d
+         JOIN users u ON u.id = d.user_id
+         WHERE d.id_prodi = :prodi AND (:status = 'semua' OR u.aktif = :aktif)
+         ORDER BY u.nama"
+    );
+    $stmtLecturers->execute([
+        ':prodi' => $selectedProdi,
+        ':status' => $statusFilter,
+        ':aktif' => $statusFilter === 'nonaktif' ? 0 : 1,
+    ]);
+    $lecturers = $stmtLecturers->fetchAll();
+    foreach ($prodiList as $program) {
+        if ((int)$program['id'] === $selectedProdi) {
+            $selectedProgram = $program;
+            break;
+        }
+    }
+}
+if (isset($_SESSION['user_import_credentials']) && $selectedProdi > 0) {
+    $importCredentials = $_SESSION['user_import_credentials'];
+    unset($_SESSION['user_import_credentials']);
+}
 
-$page_title = 'Bantuan Akun Mahasiswa';
+$page_title = 'Pengguna per Program Studi';
 $active_page = 'mahasiswa-jurusan';
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="mb-4">
-    <h3 class="fw-bold mb-1"><i class="bi bi-person-vcard me-2 text-success"></i>Bantuan Akun Mahasiswa</h3>
-    <p class="text-secondary mb-0">Cakupan: <?= e($jurusanScope['nama_jurusan']) ?>. Anda hanya dapat membantu akun mahasiswa di jurusan ini.</p>
+    <h3 class="fw-bold mb-1"><i class="bi bi-person-vcard me-2 text-success"></i>Pengguna per Program Studi</h3>
+    <p class="text-secondary mb-0">Pilih program studi dalam <?= e($jurusanScope['nama_jurusan']) ?> untuk melihat dan mengelola akun di dalamnya.</p>
 </div>
 
 <?php if ($errors): ?>
-    <div class="alert alert-danger"><?= e(implode(' ', $errors)) ?></div>
+    <div class="alert alert-danger">
+        <strong>Permintaan belum berhasil:</strong>
+        <ul class="mb-0 mt-2"><?php foreach ($errors as $error): ?><li><?= e($error) ?></li><?php endforeach; ?></ul>
+    </div>
 <?php endif; ?>
 
-<form method="GET" class="card card-custom border-0 shadow-sm mb-4">
-    <div class="card-body row g-3 align-items-end">
-        <div class="col-md-6">
-            <label class="form-label" for="studentSearch">Cari mahasiswa</label>
-            <input id="studentSearch" class="form-control" type="search" name="q" value="<?= e($search) ?>" placeholder="Nama, email, atau NPM">
+<div class="row g-3 mb-4">
+    <?php foreach ($prodiList as $prodi): ?>
+        <div class="col-sm-6 col-xl-4">
+            <a class="card card-custom border-0 shadow-sm h-100 text-decoration-none <?= $selectedProdi === (int)$prodi['id'] ? 'border-start border-success border-4' : '' ?>"
+               href="<?= BASE_URL ?>/admin/mahasiswa.php?prodi=<?= (int)$prodi['id'] ?>">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="fw-bold text-dark"><?= e($prodi['nama_prodi']) ?></div>
+                        <small class="text-muted">Kelola akun prodi</small>
+                    </div>
+                    <i class="bi bi-arrow-right-circle text-success fs-4"></i>
+                </div>
+            </a>
         </div>
-        <div class="col-md-4">
-            <label class="form-label" for="studentProdi">Program studi</label>
-            <select id="studentProdi" class="form-select" name="prodi">
-                <option value="0">Semua prodi di jurusan</option>
-                <?php foreach ($prodiList as $prodi): ?>
-                    <option value="<?= (int)$prodi['id'] ?>" <?= $filterProdi === (int)$prodi['id'] ? 'selected' : '' ?>>
-                        <?= e($prodi['nama_prodi']) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div class="col-md-2 d-flex gap-2">
-            <button class="btn btn-polinela flex-grow-1" type="submit"><i class="bi bi-filter me-1"></i>Filter</button>
-            <a class="btn btn-outline-secondary" href="<?= BASE_URL ?>/admin/mahasiswa.php" title="Reset filter"><i class="bi bi-arrow-counterclockwise"></i></a>
-        </div>
-    </div>
-</form>
-
-<div class="card card-custom border-0 shadow-sm">
-    <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-            <thead class="table-light"><tr><th>Mahasiswa</th><th>NPM</th><th>Program Studi</th><th>Email</th><th class="text-end">Bantuan</th></tr></thead>
-            <tbody>
-            <?php if (!$students): ?>
-                <tr><td colspan="5" class="text-center text-muted p-5">Tidak ada mahasiswa ditemukan.</td></tr>
-            <?php else: foreach ($students as $student): ?>
-                <tr>
-                    <td class="fw-semibold"><?= e($student['nama']) ?></td>
-                    <td><?= e($student['npm']) ?></td>
-                    <td><?= e($student['nama_prodi']) ?></td>
-                    <td>
-                        <form method="POST" class="d-flex gap-2">
-                            <?= csrf_field() ?>
-                            <input type="hidden" name="action" value="update_email">
-                            <input type="hidden" name="user_id" value="<?= (int)$student['id'] ?>">
-                            <input class="form-control form-control-sm" type="email" name="email" value="<?= e($student['email']) ?>" required aria-label="Email mahasiswa">
-                            <button class="btn btn-sm btn-outline-primary" type="submit">Simpan</button>
-                        </form>
-                    </td>
-                    <td class="text-end">
-                        <form method="POST" class="d-inline">
-                            <?= csrf_field() ?>
-                            <input type="hidden" name="action" value="reset_password">
-                            <input type="hidden" name="user_id" value="<?= (int)$student['id'] ?>">
-                            <button class="btn btn-sm btn-outline-warning text-dark" type="submit" data-confirm="Reset sandi untuk <?= e($student['nama']) ?>?">
-                                <i class="bi bi-key me-1"></i>Reset sandi
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-            <?php endforeach; endif; ?>
-            </tbody>
-        </table>
-    </div>
+    <?php endforeach; ?>
 </div>
+
+<?php if ($selectedProdi > 0 && $selectedProgram): ?>
+    <div class="d-flex flex-column flex-md-row justify-content-between gap-2 align-items-md-center mb-3">
+        <div>
+            <h4 class="fw-bold mb-1"><?= e($selectedProgram['nama_prodi']) ?></h4>
+            <p class="text-muted mb-0">Akun yang diimpor akan otomatis terhubung ke program studi ini.</p>
+        </div>
+    </div>
+
+    <?php if ($importCredentials): ?>
+        <div class="alert alert-warning">
+            <h5 class="alert-heading">Simpan informasi sandi ini</h5>
+            <p class="small">Sandi awal menggunakan tanggal lahir. Minta mahasiswa menggantinya saat login.</p>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered bg-white mb-0">
+                    <thead><tr><th>Nama</th><th>Peran</th><th>Email</th><th>Sandi sementara</th></tr></thead>
+                    <tbody><?php foreach ($importCredentials as $credential): ?>
+                        <tr>
+                            <td><?= e($credential['nama']) ?></td>
+                            <td><?= e(ucfirst($credential['peran'])) ?></td>
+                            <td><?= e($credential['email']) ?></td>
+                            <td><code><?= e($credential['password']) ?></code></td>
+                        </tr>
+                    <?php endforeach; ?></tbody>
+                </table>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <div class="card card-custom border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="fw-bold"><i class="bi bi-file-earmark-arrow-up text-success me-2"></i>Impor Data Pengguna</h5>
+            <p class="text-secondary">Pilih jenis data, unduh template khusus, lalu unggah file. Maksimal 500 baris; seluruh baris harus valid agar impor dilakukan.</p>
+            <form method="POST" enctype="multipart/form-data">
+                <?= csrf_field() ?>
+                <input type="hidden" name="action" value="import_users">
+                <input type="hidden" name="prodi" value="<?= $selectedProdi ?>">
+                <div class="row g-3 align-items-end mb-3">
+                    <div class="col-md-5">
+                        <label class="form-label fw-semibold" for="importRole">Jenis data yang diimpor</label>
+                        <select class="form-select" name="import_role" id="importRole" required>
+                            <option value="mahasiswa">Mahasiswa</option>
+                            <option value="dosen">Dosen</option>
+                        </select>
+                    </div>
+                    <div class="col-md-7">
+                        <a id="downloadUserTemplate" class="btn btn-outline-success" href="<?= BASE_URL ?>/admin/mahasiswa.php?prodi=<?= $selectedProdi ?>&template=users&role=mahasiswa">
+                            <i class="bi bi-download me-1"></i>Unduh Template Mahasiswa
+                        </a>
+                    </div>
+                </div>
+                <label class="form-label fw-semibold" for="usersExcel">Pilih file .xlsx (maks. 5 MB)</label>
+                <div class="d-flex flex-column flex-md-row gap-2">
+                    <input id="usersExcel" class="form-control" type="file" name="file_excel" accept=".xlsx" required>
+                    <button class="btn btn-polinela text-nowrap" type="submit"><i class="bi bi-upload me-1"></i>Validasi dan Impor</button>
+                </div>
+            </form>
+            <div class="small text-muted mt-2">Tanggal lahir dipakai sebagai password awal dengan format <code>DDMMYYYY</code> (contoh: 7 Januari 2004 menjadi <code>07012004</code>), lalu wajib diganti saat login pertama. Data tanggal lahir tidak disimpan. Formatkan NPM/NIDN sebagai teks di Excel agar angka nol di depan tidak hilang.</div>
+        </div>
+    </div>
+
+    <form method="GET" class="card card-custom border-0 shadow-sm mb-4">
+        <input type="hidden" name="prodi" value="<?= $selectedProdi ?>">
+        <div class="card-body row g-3 align-items-end">
+            <div class="col-md-6">
+                <label class="form-label" for="studentSearch">Cari akun di prodi ini</label>
+                <input id="studentSearch" class="form-control" type="search" name="q" value="<?= e($search) ?>" placeholder="Nama, email, atau NPM">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label" for="studentStatus">Status akun</label>
+                <select id="studentStatus" class="form-select" name="status">
+                    <option value="aktif" <?= $statusFilter === 'aktif' ? 'selected' : '' ?>>Aktif</option>
+                    <option value="nonaktif" <?= $statusFilter === 'nonaktif' ? 'selected' : '' ?>>Nonaktif</option>
+                    <option value="semua" <?= $statusFilter === 'semua' ? 'selected' : '' ?>>Semua</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-polinela w-100" type="submit"><i class="bi bi-search me-1"></i>Tampilkan</button>
+            </div>
+        </div>
+    </form>
+
+    <div class="card card-custom border-0 shadow-sm mb-4">
+        <div class="card-header card-header-polinela fw-bold">
+            Mahasiswa <?= ucfirst($statusFilter) ?> (<?= count($students) ?>)
+            <span class="small fw-normal ms-2">Penonaktifan mempertahankan profil dan riwayat.</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light"><tr><th>Nama</th><th>NPM</th><th>Email</th><th>Status</th><th>Riwayat</th><th class="text-end">Aksi</th></tr></thead>
+                <tbody>
+                <?php if (!$students): ?>
+                    <tr><td colspan="6" class="text-center text-muted p-4">Belum ada mahasiswa pada hasil ini.</td></tr>
+                <?php else: foreach ($students as $student): ?>
+                    <tr>
+                        <td class="fw-semibold"><?= e($student['nama']) ?></td>
+                        <td><?= e($student['npm']) ?></td>
+                        <td><?= e($student['email']) ?></td>
+                        <td><span class="badge <?= (int)$student['aktif'] === 1 ? 'bg-success' : 'bg-secondary' ?>"><?= (int)$student['aktif'] === 1 ? 'Aktif' : 'Nonaktif' ?></span></td>
+                        <td><?= (int)$student['jumlah_pertemuan'] ?> pertemuan</td>
+                        <td class="text-end text-nowrap">
+                            <button type="button" class="btn btn-sm btn-outline-primary btn-edit-student"
+                                data-id="<?= (int)$student['id'] ?>"
+                                data-nama="<?= e($student['nama']) ?>"
+                                data-email="<?= e($student['email']) ?>">
+                                <i class="bi bi-pencil me-1"></i>Edit
+                            </button>
+                            <?php if ((int)$student['aktif'] === 1): ?>
+                                <button type="button" class="btn btn-sm btn-outline-warning text-dark btn-reset-student"
+                                    data-id="<?= (int)$student['id'] ?>"
+                                    data-nama="<?= e($student['nama']) ?>">
+                                    <i class="bi bi-key me-1"></i>Reset sandi
+                                </button>
+                            <?php endif; ?>
+                            <form method="POST" class="d-inline">
+                                <?= csrf_field() ?>
+                                <input type="hidden" name="prodi" value="<?= $selectedProdi ?>">
+                                <input type="hidden" name="action" value="set_active">
+                                <input type="hidden" name="aktif" value="<?= (int)$student['aktif'] === 1 ? 0 : 1 ?>">
+                                <input type="hidden" name="user_id" value="<?= (int)$student['id'] ?>">
+                                <button class="btn btn-sm <?= (int)$student['aktif'] === 1 ? 'btn-outline-danger' : 'btn-outline-success' ?>"
+                                    type="submit"
+                                    data-confirm="<?= (int)$student['aktif'] === 1
+                                        ? 'Nonaktifkan akun ' . e($student['nama']) . '? Riwayat ' . (int)$student['jumlah_pertemuan'] . ' pertemuan akan tetap tersimpan.'
+                                        : 'Aktifkan kembali akun ' . e($student['nama']) . '?' ?>">
+                                    <i class="bi <?= (int)$student['aktif'] === 1 ? 'bi-person-dash' : 'bi-person-check' ?> me-1"></i><?= (int)$student['aktif'] === 1 ? 'Nonaktifkan' : 'Aktifkan' ?>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                <?php endforeach; endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editStudentModal" tabindex="-1" aria-labelledby="editStudentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <form method="POST">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="action" value="update_profile">
+                    <input type="hidden" name="prodi" value="<?= $selectedProdi ?>">
+                    <input type="hidden" name="user_id" id="editStudentId">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title fw-bold" id="editStudentModalLabel">Edit Data Mahasiswa</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label" for="editStudentName">Nama</label>
+                            <input class="form-control" id="editStudentName" name="nama" maxlength="100" required>
+                        </div>
+                        <div>
+                            <label class="form-label" for="editStudentEmail">Email</label>
+                            <input class="form-control" type="email" id="editStudentEmail" name="email" maxlength="100" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-polinela">Simpan Perubahan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="resetStudentPasswordModal" tabindex="-1" aria-labelledby="resetStudentPasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <form method="POST">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="action" value="reset_password">
+                    <input type="hidden" name="prodi" value="<?= $selectedProdi ?>">
+                    <input type="hidden" name="user_id" id="resetStudentId">
+                    <div class="modal-header bg-warning">
+                        <h5 class="modal-title fw-bold" id="resetStudentPasswordModalLabel">Reset Sandi Mahasiswa</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Reset sandi untuk <strong id="resetStudentName"></strong>. Masukkan tanggal lahir mahasiswa untuk membuat sandi awal.</p>
+                        <label class="form-label" for="resetStudentBirthDate">Tanggal lahir</label>
+                        <input class="form-control" type="date" id="resetStudentBirthDate" name="tanggal_lahir" required>
+                        <div class="form-text">Sandi awal menjadi DDMMYYYY dan mahasiswa wajib menggantinya saat login.</div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-warning">Reset Sandi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-custom border-0 shadow-sm">
+        <div class="card-header card-header-polinela fw-bold">
+            Dosen <?= ucfirst($statusFilter) ?> (<?= count($lecturers) ?>)
+            <span class="small fw-normal ms-2">Penonaktifan mempertahankan jadwal dan riwayat pertemuan.</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light"><tr><th>Nama</th><th>NIDN/NIP</th><th>Email</th><th>Bidang Keahlian</th><th>Status</th><th>Aktivitas</th><th class="text-end">Aksi</th></tr></thead>
+                <tbody>
+                <?php if (!$lecturers): ?>
+                    <tr><td colspan="7" class="text-center text-muted p-4">Belum ada dosen pada hasil ini.</td></tr>
+                <?php else: foreach ($lecturers as $lecturer): ?>
+                    <tr>
+                        <td class="fw-semibold"><?= e($lecturer['nama']) ?></td>
+                        <td><?= e($lecturer['nidn_nip'] ?: '-') ?></td>
+                        <td><?= e($lecturer['email']) ?></td>
+                        <td><?= e($lecturer['bidang_keahlian']) ?></td>
+                        <td><span class="badge <?= (int)$lecturer['aktif'] === 1 ? 'bg-success' : 'bg-secondary' ?>"><?= (int)$lecturer['aktif'] === 1 ? 'Aktif' : 'Nonaktif' ?></span></td>
+                        <td><?= (int)$lecturer['jumlah_jadwal'] ?> jadwal<br><?= (int)$lecturer['jumlah_pertemuan'] ?> pertemuan</td>
+                        <td class="text-end text-nowrap">
+                            <button type="button" class="btn btn-sm btn-outline-primary btn-edit-lecturer"
+                                data-id="<?= (int)$lecturer['id'] ?>"
+                                data-nama="<?= e($lecturer['nama']) ?>"
+                                data-email="<?= e($lecturer['email']) ?>"
+                                data-nidn="<?= e($lecturer['nidn_nip'] ?? '') ?>"
+                                data-expertise="<?= e($lecturer['bidang_keahlian']) ?>">
+                                <i class="bi bi-pencil me-1"></i>Edit
+                            </button>
+                            <?php if ((int)$lecturer['aktif'] === 1): ?>
+                                <button type="button" class="btn btn-sm btn-outline-warning text-dark btn-reset-lecturer"
+                                    data-id="<?= (int)$lecturer['id'] ?>"
+                                    data-nama="<?= e($lecturer['nama']) ?>">
+                                    <i class="bi bi-key me-1"></i>Reset sandi
+                                </button>
+                            <?php endif; ?>
+                            <form method="POST" class="d-inline">
+                                <?= csrf_field() ?>
+                                <input type="hidden" name="prodi" value="<?= $selectedProdi ?>">
+                                <input type="hidden" name="action" value="set_lecturer_active">
+                                <input type="hidden" name="aktif" value="<?= (int)$lecturer['aktif'] === 1 ? 0 : 1 ?>">
+                                <input type="hidden" name="user_id" value="<?= (int)$lecturer['id'] ?>">
+                                <button class="btn btn-sm <?= (int)$lecturer['aktif'] === 1 ? 'btn-outline-danger' : 'btn-outline-success' ?>"
+                                    type="submit"
+                                    data-confirm="<?= (int)$lecturer['aktif'] === 1
+                                        ? 'Nonaktifkan akun dosen ' . e($lecturer['nama']) . '? Jadwal dan riwayat ' . (int)$lecturer['jumlah_pertemuan'] . ' pertemuan tetap tersimpan.'
+                                        : 'Aktifkan kembali akun dosen ' . e($lecturer['nama']) . '?' ?>">
+                                    <i class="bi <?= (int)$lecturer['aktif'] === 1 ? 'bi-person-dash' : 'bi-person-check' ?> me-1"></i><?= (int)$lecturer['aktif'] === 1 ? 'Nonaktifkan' : 'Aktifkan' ?>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                <?php endforeach; endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editLecturerModal" tabindex="-1" aria-labelledby="editLecturerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <form method="POST">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="action" value="update_lecturer">
+                    <input type="hidden" name="prodi" value="<?= $selectedProdi ?>">
+                    <input type="hidden" name="user_id" id="editLecturerId">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title fw-bold" id="editLecturerModalLabel">Edit Data Dosen</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label" for="editLecturerName">Nama</label>
+                            <input class="form-control" id="editLecturerName" name="nama" maxlength="100" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="editLecturerEmail">Email</label>
+                            <input class="form-control" type="email" id="editLecturerEmail" name="email" maxlength="100" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="editLecturerNidn">NIDN/NIP (opsional)</label>
+                            <input class="form-control" id="editLecturerNidn" name="nidn_nip" maxlength="30">
+                        </div>
+                        <div>
+                            <label class="form-label" for="editLecturerExpertise">Bidang Keahlian</label>
+                            <input class="form-control" id="editLecturerExpertise" name="bidang_keahlian" maxlength="150" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-polinela">Simpan Perubahan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="resetLecturerPasswordModal" tabindex="-1" aria-labelledby="resetLecturerPasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <form method="POST">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="action" value="reset_lecturer_password">
+                    <input type="hidden" name="prodi" value="<?= $selectedProdi ?>">
+                    <input type="hidden" name="user_id" id="resetLecturerId">
+                    <div class="modal-header bg-warning">
+                        <h5 class="modal-title fw-bold" id="resetLecturerPasswordModalLabel">Reset Sandi Dosen</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Reset sandi untuk <strong id="resetLecturerName"></strong>. Masukkan tanggal lahir dosen untuk membuat sandi awal.</p>
+                        <label class="form-label" for="resetLecturerBirthDate">Tanggal lahir</label>
+                        <input class="form-control" type="date" id="resetLecturerBirthDate" name="tanggal_lahir" required>
+                        <div class="form-text">Sandi awal menjadi DDMMYYYY dan dosen wajib menggantinya saat login.</div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-warning">Reset Sandi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+<?php else: ?>
+    <div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>Pilih salah satu kartu program studi untuk membuka daftar pengguna dan impor akun.</div>
+<?php endif; ?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const editModalElement = document.getElementById('editStudentModal');
+    const resetModalElement = document.getElementById('resetStudentPasswordModal');
+    const editLecturerModalElement = document.getElementById('editLecturerModal');
+    const resetLecturerModalElement = document.getElementById('resetLecturerPasswordModal');
+    const editModal = editModalElement ? new bootstrap.Modal(editModalElement) : null;
+    const resetModal = resetModalElement ? new bootstrap.Modal(resetModalElement) : null;
+    const editLecturerModal = editLecturerModalElement ? new bootstrap.Modal(editLecturerModalElement) : null;
+    const resetLecturerModal = resetLecturerModalElement ? new bootstrap.Modal(resetLecturerModalElement) : null;
+
+    document.querySelectorAll('.btn-edit-student').forEach(function (button) {
+        button.addEventListener('click', function () {
+            document.getElementById('editStudentId').value = this.dataset.id;
+            document.getElementById('editStudentName').value = this.dataset.nama;
+            document.getElementById('editStudentEmail').value = this.dataset.email;
+            editModal.show();
+        });
+    });
+
+    document.querySelectorAll('.btn-reset-student').forEach(function (button) {
+        button.addEventListener('click', function () {
+            document.getElementById('resetStudentId').value = this.dataset.id;
+            document.getElementById('resetStudentName').textContent = this.dataset.nama;
+            document.getElementById('resetStudentBirthDate').value = '';
+            resetModal.show();
+        });
+    });
+
+    document.querySelectorAll('.btn-edit-lecturer').forEach(function (button) {
+        button.addEventListener('click', function () {
+            document.getElementById('editLecturerId').value = this.dataset.id;
+            document.getElementById('editLecturerName').value = this.dataset.nama;
+            document.getElementById('editLecturerEmail').value = this.dataset.email;
+            document.getElementById('editLecturerNidn').value = this.dataset.nidn;
+            document.getElementById('editLecturerExpertise').value = this.dataset.expertise;
+            editLecturerModal.show();
+        });
+    });
+
+    document.querySelectorAll('.btn-reset-lecturer').forEach(function (button) {
+        button.addEventListener('click', function () {
+            document.getElementById('resetLecturerId').value = this.dataset.id;
+            document.getElementById('resetLecturerName').textContent = this.dataset.nama;
+            document.getElementById('resetLecturerBirthDate').value = '';
+            resetLecturerModal.show();
+        });
+    });
+
+    const roleSelect = document.getElementById('importRole');
+    const templateLink = document.getElementById('downloadUserTemplate');
+    if (!roleSelect || !templateLink) return;
+
+    roleSelect.addEventListener('change', function () {
+        const roleLabel = this.value === 'dosen' ? 'Dosen' : 'Mahasiswa';
+        templateLink.href = '<?= BASE_URL ?>/admin/mahasiswa.php?prodi=<?= $selectedProdi ?>&template=users&role=' + encodeURIComponent(this.value);
+        templateLink.innerHTML = '<i class="bi bi-download me-1"></i>Unduh Template ' + roleLabel;
+    });
+});
+</script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

@@ -1,0 +1,755 @@
+<?xml version="1.0" encoding="windows-1252"?>
+<xmi:XMI xmi:version="2.1" xmlns:uml="http://schema.omg.org/spec/UML/2.1" xmlns:xmi="http://schema.omg.org/spec/XMI/2.1">
+  <xmi:Documentation exporter="Enterprise Architect" exporterVersion="6.5"/>
+  <uml:Model xmi:type="uml:Model" name="EA_Model">
+    <packagedElement xmi:type="uml:Package" xmi:id="EAPK_ROOT" name="S-LECTURA UML Model">
+      <packagedElement xmi:type="uml:Package" xmi:id="EAPK_USECASE" name="Use Case Model">
+        <packagedElement xmi:type="uml:Actor" xmi:id="EAID_ACT_ADMIN" name="Administrator Utama"/>
+        <packagedElement xmi:type="uml:Actor" xmi:id="EAID_ACT_ADMIN_JUR" name="Admin Jurusan"/>
+        <packagedElement xmi:type="uml:Actor" xmi:id="EAID_ACT_DOSEN" name="Dosen"/>
+        <packagedElement xmi:type="uml:Actor" xmi:id="EAID_ACT_MHS" name="Mahasiswa"/>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC01" name="Login Sistem">
+        </packagedElement>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC02" name="Ganti Kata Sandi">
+        </packagedElement>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC03" name="Kelola Profil &amp; Unggah Foto Profil">
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC03_EAID_UC01" addition="EAID_UC01"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC04" name="Kelola Master Jurusan">
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC04_EAID_UC01" addition="EAID_UC01"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC05" name="Kelola Master Program Studi">
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC05_EAID_UC01" addition="EAID_UC01"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC06" name="Kelola Master Dosen">
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC06_EAID_UC01" addition="EAID_UC01"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC07" name="Kelola Master Kelas">
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC07_EAID_UC01" addition="EAID_UC01"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC08" name="Kelola Master Mata Kuliah">
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC08_EAID_UC01" addition="EAID_UC01"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC09" name="Kelola Akun Admin Jurusan &amp; Status Aktif">
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC09_EAID_UC01" addition="EAID_UC01"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC10" name="Lihat Ringkasan Statistik Global">
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC10_EAID_UC01" addition="EAID_UC01"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC11" name="Impor Akun Mahasiswa &amp; Dosen (XLSX)">
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC11_EAID_UC01" addition="EAID_UC01"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC12" name="Kelola Status Akun Aktif/Nonaktif &amp; Reset Sandi">
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC12_EAID_UC01" addition="EAID_UC01"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC13" name="Impor Jadwal Kuliah Dosen Se-Jurusan (XLSX)">
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC13_EAID_UC01" addition="EAID_UC01"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC14" name="Lihat Laporan Rekapitulasi Pertemuan Jurusan">
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC14_EAID_UC01" addition="EAID_UC01"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC15" name="Perbarui Status Ketersediaan Mandiri (1-Klik)">
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC15_EAID_UC01" addition="EAID_UC01"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC16" name="Kelola Jadwal Mengajar Mandiri">
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC16_EAID_UC01" addition="EAID_UC01"/>
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC16_EAID_UC27" addition="EAID_UC27"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC17" name="Impor Jadwal Kuliah Pribadi (XLSX)">
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC17_EAID_UC01" addition="EAID_UC01"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC18" name="Kelola Slot Konsultasi &amp; Bimbingan">
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC18_EAID_UC01" addition="EAID_UC01"/>
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC18_EAID_UC27" addition="EAID_UC27"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC19" name="Disposisi Permintaan Pertemuan">
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC19_EAID_UC01" addition="EAID_UC01"/>
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC19_EAID_UC28" addition="EAID_UC28"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC20" name="Cari &amp; Filter Dosen Se-Jurusan">
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC20_EAID_UC01" addition="EAID_UC01"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC21" name="Lihat Profil, Jadwal, &amp; Slot Aktif Dosen">
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC21_EAID_UC01" addition="EAID_UC01"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC22" name="Ajukan Janji Temu Bimbingan">
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC22_EAID_UC01" addition="EAID_UC01"/>
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC22_EAID_UC27" addition="EAID_UC27"/>
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC22_EAID_UC28" addition="EAID_UC28"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC23" name="Konfirmasi Usulan Jadwal Dosen">
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC23_EAID_UC01" addition="EAID_UC01"/>
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC23_EAID_UC28" addition="EAID_UC28"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC24" name="Batalkan Permintaan Pertemuan">
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC24_EAID_UC01" addition="EAID_UC01"/>
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC24_EAID_UC28" addition="EAID_UC28"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC25" name="Lihat Notifikasi In-App">
+          <include xmi:type="uml:Include" xmi:id="INC_EAID_UC25_EAID_UC01" addition="EAID_UC01"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC26" name="Usulan Waktu Alternatif">
+          <extend xmi:type="uml:Extend" xmi:id="EXT_UC26_UC19" extendedCase="EAID_UC19"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC27" name="Deteksi Bentrok Jadwal">
+        </packagedElement>
+        <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_UC28" name="Pemicuan Notifikasi">
+        </packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_ADM_UC01"><memberEnd xmi:idref="EAID_ACT_ADMIN"/><memberEnd xmi:idref="EAID_UC01"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_ADM_UC02"><memberEnd xmi:idref="EAID_ACT_ADMIN"/><memberEnd xmi:idref="EAID_UC02"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_ADM_UC04"><memberEnd xmi:idref="EAID_ACT_ADMIN"/><memberEnd xmi:idref="EAID_UC04"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_ADM_UC05"><memberEnd xmi:idref="EAID_ACT_ADMIN"/><memberEnd xmi:idref="EAID_UC05"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_ADM_UC07"><memberEnd xmi:idref="EAID_ACT_ADMIN"/><memberEnd xmi:idref="EAID_UC07"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_ADM_UC08"><memberEnd xmi:idref="EAID_ACT_ADMIN"/><memberEnd xmi:idref="EAID_UC08"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_ADM_UC09"><memberEnd xmi:idref="EAID_ACT_ADMIN"/><memberEnd xmi:idref="EAID_UC09"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_ADM_UC10"><memberEnd xmi:idref="EAID_ACT_ADMIN"/><memberEnd xmi:idref="EAID_UC10"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_ADMJ_UC01"><memberEnd xmi:idref="EAID_ACT_ADMIN_JUR"/><memberEnd xmi:idref="EAID_UC01"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_ADMJ_UC02"><memberEnd xmi:idref="EAID_ACT_ADMIN_JUR"/><memberEnd xmi:idref="EAID_UC02"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_ADMJ_UC11"><memberEnd xmi:idref="EAID_ACT_ADMIN_JUR"/><memberEnd xmi:idref="EAID_UC11"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_ADMJ_UC12"><memberEnd xmi:idref="EAID_ACT_ADMIN_JUR"/><memberEnd xmi:idref="EAID_UC12"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_ADMJ_UC13"><memberEnd xmi:idref="EAID_ACT_ADMIN_JUR"/><memberEnd xmi:idref="EAID_UC13"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_ADMJ_UC14"><memberEnd xmi:idref="EAID_ACT_ADMIN_JUR"/><memberEnd xmi:idref="EAID_UC14"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_DSN_UC01"><memberEnd xmi:idref="EAID_ACT_DOSEN"/><memberEnd xmi:idref="EAID_UC01"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_DSN_UC02"><memberEnd xmi:idref="EAID_ACT_DOSEN"/><memberEnd xmi:idref="EAID_UC02"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_DSN_UC15"><memberEnd xmi:idref="EAID_ACT_DOSEN"/><memberEnd xmi:idref="EAID_UC15"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_DSN_UC16"><memberEnd xmi:idref="EAID_ACT_DOSEN"/><memberEnd xmi:idref="EAID_UC16"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_DSN_UC17"><memberEnd xmi:idref="EAID_ACT_DOSEN"/><memberEnd xmi:idref="EAID_UC17"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_DSN_UC18"><memberEnd xmi:idref="EAID_ACT_DOSEN"/><memberEnd xmi:idref="EAID_UC18"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_DSN_UC19"><memberEnd xmi:idref="EAID_ACT_DOSEN"/><memberEnd xmi:idref="EAID_UC19"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_DSN_UC25"><memberEnd xmi:idref="EAID_ACT_DOSEN"/><memberEnd xmi:idref="EAID_UC25"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_MHS_UC01"><memberEnd xmi:idref="EAID_ACT_MHS"/><memberEnd xmi:idref="EAID_UC01"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_MHS_UC02"><memberEnd xmi:idref="EAID_ACT_MHS"/><memberEnd xmi:idref="EAID_UC02"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_MHS_UC03"><memberEnd xmi:idref="EAID_ACT_MHS"/><memberEnd xmi:idref="EAID_UC03"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_MHS_UC20"><memberEnd xmi:idref="EAID_ACT_MHS"/><memberEnd xmi:idref="EAID_UC20"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_MHS_UC21"><memberEnd xmi:idref="EAID_ACT_MHS"/><memberEnd xmi:idref="EAID_UC21"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_MHS_UC22"><memberEnd xmi:idref="EAID_ACT_MHS"/><memberEnd xmi:idref="EAID_UC22"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_MHS_UC23"><memberEnd xmi:idref="EAID_ACT_MHS"/><memberEnd xmi:idref="EAID_UC23"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_MHS_UC24"><memberEnd xmi:idref="EAID_ACT_MHS"/><memberEnd xmi:idref="EAID_UC24"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="ASC_MHS_UC25"><memberEnd xmi:idref="EAID_ACT_MHS"/><memberEnd xmi:idref="EAID_UC25"/></packagedElement>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Package" xmi:id="EAPK_CLASS" name="Class Model &amp; ERD">
+        <packagedElement xmi:type="uml:Class" xmi:id="CLS_JURUSAN" name="Jurusan">
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_JURUSAN_a0" name="id"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_JURUSAN_a1" name="nama_jurusan"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_JURUSAN_a2" name="created_at"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_JURUSAN_o0" name="tambahJurusan"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_JURUSAN_o1" name="ubahJurusan"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_JURUSAN_o2" name="hapusJurusan"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="CLS_PRODI" name="ProgramStudi">
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_PRODI_a0" name="id"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_PRODI_a1" name="nama_prodi"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_PRODI_a2" name="id_jurusan"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_PRODI_o0" name="tambahProdi"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_PRODI_o1" name="ubahProdi"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_PRODI_o2" name="hapusProdi"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="CLS_USER" name="User">
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_USER_a0" name="id"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_USER_a1" name="nama"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_USER_a2" name="email"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_USER_a3" name="password_hash"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_USER_a4" name="role"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_USER_a5" name="aktif"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_USER_a6" name="must_change_password"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_USER_a7" name="npm"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_USER_a8" name="created_at"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_USER_o0" name="login"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_USER_o1" name="logout"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_USER_o2" name="changePassword"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_USER_o3" name="verifyPassword"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_USER_o4" name="isActive"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="CLS_ADMIN_JURUSAN" name="AdminJurusan">
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_ADMIN_JURUSAN_a0" name="user_id"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_ADMIN_JURUSAN_a1" name="id_jurusan"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_ADMIN_JURUSAN_a2" name="created_at"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_ADMIN_JURUSAN_o0" name="kelolaMahasiswa"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_ADMIN_JURUSAN_o1" name="kelolaDosen"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_ADMIN_JURUSAN_o2" name="resetPasswordUser"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_ADMIN_JURUSAN_o3" name="toggleStatusAktif"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_ADMIN_JURUSAN_o4" name="importUsersXlsx"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_ADMIN_JURUSAN_o5" name="importJadwalJurusan"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="CLS_DOSEN" name="Dosen">
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_DOSEN_a0" name="id"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_DOSEN_a1" name="user_id"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_DOSEN_a2" name="nidn_nip"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_DOSEN_a3" name="id_prodi"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_DOSEN_a4" name="foto"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_DOSEN_a5" name="bidang_keahlian"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_DOSEN_o0" name="updateProfil"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_DOSEN_o1" name="updateStatusKetersediaan"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_DOSEN_o2" name="getJadwal"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_DOSEN_o3" name="getSlot"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="CLS_MAHASISWA" name="Mahasiswa">
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_MAHASISWA_a0" name="id"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_MAHASISWA_a1" name="user_id"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_MAHASISWA_a2" name="npm"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_MAHASISWA_a3" name="id_kelas"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_MAHASISWA_a4" name="id_prodi"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_MAHASISWA_a5" name="foto"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_MAHASISWA_o0" name="updateProfil"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_MAHASISWA_o1" name="uploadFotoProfil"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_MAHASISWA_o2" name="ajukanPertemuan"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_MAHASISWA_o3" name="konfirmasiUsulan"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_MAHASISWA_o4" name="batalkanPertemuan"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="CLS_KELAS" name="Kelas">
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_KELAS_a0" name="id"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_KELAS_a1" name="nama_kelas"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_KELAS_a2" name="id_prodi"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_KELAS_a3" name="semester"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_KELAS_a4" name="tahun_ajaran"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_KELAS_o0" name="tambahKelas"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_KELAS_o1" name="ubahKelas"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_KELAS_o2" name="hapusKelas"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="CLS_MATA_KULIAH" name="MataKuliah">
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_MATA_KULIAH_a0" name="id"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_MATA_KULIAH_a1" name="kode"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_MATA_KULIAH_a2" name="nama"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_MATA_KULIAH_o0" name="tambahMK"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_MATA_KULIAH_o1" name="ubahMK"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_MATA_KULIAH_o2" name="hapusMK"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="CLS_JADWAL" name="JadwalMengajar">
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_JADWAL_a0" name="id"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_JADWAL_a1" name="id_dosen"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_JADWAL_a2" name="id_mk"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_JADWAL_a3" name="id_kelas"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_JADWAL_a4" name="hari"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_JADWAL_a5" name="jam_mulai"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_JADWAL_a6" name="jam_selesai"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_JADWAL_a7" name="tipe_sesi"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_JADWAL_a8" name="termin"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_JADWAL_a9" name="sks"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_JADWAL_a10" name="mode"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_JADWAL_a11" name="ruang"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_JADWAL_o0" name="tambahJadwal"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_JADWAL_o1" name="ubahJadwal"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_JADWAL_o2" name="hapusJadwal"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_JADWAL_o3" name="checkCollision"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="CLS_SLOT" name="SlotKonsultasi">
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_SLOT_a0" name="id"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_SLOT_a1" name="id_dosen"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_SLOT_a2" name="hari"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_SLOT_a3" name="jam_mulai"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_SLOT_a4" name="jam_selesai"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_SLOT_a5" name="jenis"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_SLOT_a6" name="catatan"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_SLOT_a7" name="aktif"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_SLOT_o0" name="tambahSlot"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_SLOT_o1" name="toggleAktif"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_SLOT_o2" name="hapusSlot"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="CLS_STATUS" name="StatusKetersediaan">
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_STATUS_a0" name="id"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_STATUS_a1" name="id_dosen"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_STATUS_a2" name="status"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_STATUS_a3" name="catatan"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_STATUS_a4" name="berlaku_sampai"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_STATUS_a5" name="updated_at"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_STATUS_o0" name="updateStatus"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_STATUS_o1" name="getStatus"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="CLS_PERTEMUAN" name="PermintaanPertemuan">
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_PERTEMUAN_a0" name="id"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_PERTEMUAN_a1" name="id_mahasiswa"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_PERTEMUAN_a2" name="id_dosen"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_PERTEMUAN_a3" name="jenis"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_PERTEMUAN_a4" name="tanggal"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_PERTEMUAN_a5" name="jam_mulai"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_PERTEMUAN_a6" name="jam_selesai"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_PERTEMUAN_a7" name="alasan"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_PERTEMUAN_a8" name="semester"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_PERTEMUAN_a9" name="tahun_ajaran"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_PERTEMUAN_a10" name="status"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_PERTEMUAN_a11" name="usul_tanggal"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_PERTEMUAN_a12" name="usul_jam_mulai"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_PERTEMUAN_a13" name="usul_jam_selesai"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_PERTEMUAN_a14" name="created_at"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_PERTEMUAN_a15" name="updated_at"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_PERTEMUAN_o0" name="approve"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_PERTEMUAN_o1" name="reject"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_PERTEMUAN_o2" name="proposeSchedule"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_PERTEMUAN_o3" name="confirmProposal"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_PERTEMUAN_o4" name="cancel"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_PERTEMUAN_o5" name="complete"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="CLS_NOTIFIKASI" name="Notifikasi">
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_NOTIFIKASI_a0" name="id"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_NOTIFIKASI_a1" name="user_id"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_NOTIFIKASI_a2" name="pesan"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_NOTIFIKASI_a3" name="tautan"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_NOTIFIKASI_a4" name="created_at"/>
+          <ownedAttribute xmi:type="uml:Property" xmi:id="CLS_NOTIFIKASI_a5" name="dibaca_at"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_NOTIFIKASI_o0" name="createNotification"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_NOTIFIKASI_o1" name="markAsRead"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_NOTIFIKASI_o2" name="getUnreadCount"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="CLS_DB_CONN" name="DatabaseConnection">
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_DB_CONN_o0" name="getConnection"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="CLS_AUTH_SVC" name="AuthService">
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_AUTH_SVC_o0" name="authenticate"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_AUTH_SVC_o1" name="checkRole"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_AUTH_SVC_o2" name="requirePasswordChange"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_AUTH_SVC_o3" name="getCurrentUser"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_AUTH_SVC_o4" name="isUserActive"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="CLS_MEETING_SVC" name="MeetingService">
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_MEETING_SVC_o0" name="hasConflict"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_MEETING_SVC_o1" name="hasPracticalConflict"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_MEETING_SVC_o2" name="hasTheoryOverlap"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_MEETING_SVC_o3" name="hasApprovedConflict"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_MEETING_SVC_o4" name="isValidTimeRange"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="CLS_SCHEDULE_SVC" name="ScheduleImportService">
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_SCHEDULE_SVC_o0" name="validateScheduleImport"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_SCHEDULE_SVC_o1" name="executeImportTransaction"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="CLS_USER_SVC" name="UserImportService">
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_USER_SVC_o0" name="validateUserImport"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_USER_SVC_o1" name="generatePasswordFromBirthDate"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_USER_SVC_o2" name="importUsersTransaction"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="CLS_NOTIF_SVC" name="NotificationService">
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_NOTIF_SVC_o0" name="sendNotification"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_NOTIF_SVC_o1" name="getUnreadCount"/>
+          <ownedOperation xmi:type="uml:Operation" xmi:id="CLS_NOTIF_SVC_o2" name="markAsRead"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="FK_PRODI_JURUSAN"><memberEnd xmi:idref="CLS_JURUSAN"/><memberEnd xmi:idref="CLS_PRODI"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="FK_ADMIN_JURUSAN"><memberEnd xmi:idref="CLS_JURUSAN"/><memberEnd xmi:idref="CLS_ADMIN_JURUSAN"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="FK_ADMIN_USER"><memberEnd xmi:idref="CLS_USER"/><memberEnd xmi:idref="CLS_ADMIN_JURUSAN"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="FK_DOSEN_USER"><memberEnd xmi:idref="CLS_USER"/><memberEnd xmi:idref="CLS_DOSEN"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="FK_MHS_USER"><memberEnd xmi:idref="CLS_USER"/><memberEnd xmi:idref="CLS_MAHASISWA"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="FK_NOTIF_USER"><memberEnd xmi:idref="CLS_USER"/><memberEnd xmi:idref="CLS_NOTIFIKASI"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="FK_DOSEN_PRODI"><memberEnd xmi:idref="CLS_PRODI"/><memberEnd xmi:idref="CLS_DOSEN"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="FK_KELAS_PRODI"><memberEnd xmi:idref="CLS_PRODI"/><memberEnd xmi:idref="CLS_KELAS"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="FK_MHS_PRODI"><memberEnd xmi:idref="CLS_PRODI"/><memberEnd xmi:idref="CLS_MAHASISWA"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="FK_MHS_KELAS"><memberEnd xmi:idref="CLS_KELAS"/><memberEnd xmi:idref="CLS_MAHASISWA"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="FK_JADWAL_KELAS"><memberEnd xmi:idref="CLS_KELAS"/><memberEnd xmi:idref="CLS_JADWAL"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="FK_JADWAL_MK"><memberEnd xmi:idref="CLS_MATA_KULIAH"/><memberEnd xmi:idref="CLS_JADWAL"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="FK_JADWAL_DOSEN"><memberEnd xmi:idref="CLS_DOSEN"/><memberEnd xmi:idref="CLS_JADWAL"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="FK_SLOT_DOSEN"><memberEnd xmi:idref="CLS_DOSEN"/><memberEnd xmi:idref="CLS_SLOT"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="FK_STATUS_DOSEN"><memberEnd xmi:idref="CLS_DOSEN"/><memberEnd xmi:idref="CLS_STATUS"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="FK_MEET_DOSEN"><memberEnd xmi:idref="CLS_DOSEN"/><memberEnd xmi:idref="CLS_PERTEMUAN"/></packagedElement>
+        <packagedElement xmi:type="uml:Association" xmi:id="FK_MEET_MHS"><memberEnd xmi:idref="CLS_MAHASISWA"/><memberEnd xmi:idref="CLS_PERTEMUAN"/></packagedElement>
+        <packagedElement xmi:type="uml:Dependency" xmi:id="DEP_AUTH_USER" supplier="CLS_USER" client="CLS_AUTH_SVC"/>
+        <packagedElement xmi:type="uml:Dependency" xmi:id="DEP_MEET_PERTEMUAN" supplier="CLS_PERTEMUAN" client="CLS_MEETING_SVC"/>
+        <packagedElement xmi:type="uml:Dependency" xmi:id="DEP_MEET_JADWAL" supplier="CLS_JADWAL" client="CLS_MEETING_SVC"/>
+        <packagedElement xmi:type="uml:Dependency" xmi:id="DEP_SCHED_JADWAL" supplier="CLS_JADWAL" client="CLS_SCHEDULE_SVC"/>
+        <packagedElement xmi:type="uml:Dependency" xmi:id="DEP_USER_USER" supplier="CLS_USER" client="CLS_USER_SVC"/>
+        <packagedElement xmi:type="uml:Dependency" xmi:id="DEP_USER_MHS" supplier="CLS_MAHASISWA" client="CLS_USER_SVC"/>
+        <packagedElement xmi:type="uml:Dependency" xmi:id="DEP_USER_DOSEN" supplier="CLS_DOSEN" client="CLS_USER_SVC"/>
+        <packagedElement xmi:type="uml:Dependency" xmi:id="DEP_NOTIF_NOTIF" supplier="CLS_NOTIFIKASI" client="CLS_NOTIF_SVC"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Package" xmi:id="EAPK_ACTIVITY" name="Activity Model">
+        <packagedElement xmi:type="uml:Activity" xmi:id="ACT_AUTH" name="Activity Autentikasi Pengguna &amp; Status Aktif">
+          <node xmi:type="uml:InitialNode" xmi:id="AN_AUTH_INIT" name="Initial"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_AUTH_INPUT" name="Memasukkan Email/NPM &amp; Sandi"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_AUTH_VALIDATE" name="Kueri Akun &amp; Cek Status Aktif"/>
+          <node xmi:type="uml:DecisionNode" xmi:id="AN_AUTH_DEC1" name="Akun Aktif (aktif=1)?"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_AUTH_ERR" name="Menolak &amp; Pesan Akun Nonaktif / Galat"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_AUTH_BCRYPT" name="Verifikasi Sandi via Bcrypt"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_AUTH_SESS" name="Membuat Sesi &amp; Regenerasi ID"/>
+          <node xmi:type="uml:DecisionNode" xmi:id="AN_AUTH_DEC2" name="Wajib Ganti Sandi?"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_AUTH_REDIRECT_CHANGE" name="Arahkan ke Halaman Ganti Sandi"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_AUTH_INPUT_NEW_PASS" name="Memasukkan Sandi Baru Min 8 Karakter"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_AUTH_SAVE_PASS" name="Menyimpan Sandi Baru &amp; Flag=0"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_AUTH_REDIRECT_DASH" name="Arahkan ke Dasbor Sesuai Peran"/>
+          <node xmi:type="uml:ActivityFinalNode" xmi:id="AN_AUTH_FINAL" name="Final"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_AUTH_1" source="AN_AUTH_INIT" target="AN_AUTH_INPUT"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_AUTH_2" source="AN_AUTH_INPUT" target="AN_AUTH_VALIDATE"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_AUTH_3" source="AN_AUTH_VALIDATE" target="AN_AUTH_DEC1"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_AUTH_4" source="AN_AUTH_DEC1" target="AN_AUTH_ERR"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_AUTH_5" source="AN_AUTH_ERR" target="AN_AUTH_INPUT"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_AUTH_6" source="AN_AUTH_DEC1" target="AN_AUTH_BCRYPT"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_AUTH_7" source="AN_AUTH_BCRYPT" target="AN_AUTH_SESS"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_AUTH_8" source="AN_AUTH_SESS" target="AN_AUTH_DEC2"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_AUTH_9" source="AN_AUTH_DEC2" target="AN_AUTH_REDIRECT_CHANGE"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_AUTH_10" source="AN_AUTH_REDIRECT_CHANGE" target="AN_AUTH_INPUT_NEW_PASS"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_AUTH_11" source="AN_AUTH_INPUT_NEW_PASS" target="AN_AUTH_SAVE_PASS"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_AUTH_12" source="AN_AUTH_SAVE_PASS" target="AN_AUTH_REDIRECT_DASH"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_AUTH_13" source="AN_AUTH_DEC2" target="AN_AUTH_REDIRECT_DASH"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_AUTH_14" source="AN_AUTH_REDIRECT_DASH" target="AN_AUTH_FINAL"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Activity" xmi:id="ACT_MHS_PERTEMUAN" name="Activity Mahasiswa Pengajuan Pertemuan">
+          <node xmi:type="uml:InitialNode" xmi:id="AN_MHS_INIT" name="Initial"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_MHS_PILIH_DOSEN" name="Memilih Dosen Tujuan &amp; Jenis"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_MHS_TENTUKAN_WAKTU" name="Memilih Slot Dosen atau Mandiri"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_MHS_ISI_ALASAN" name="Mengisi Alasan (Kecuali Pribadi)"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_MHS_SUBMIT" name="Mengirim Formulir Pengajuan"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_MHS_CEK_WAKTU" name="Memeriksa Validasi Waktu"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_MHS_CEK_BENTROK" name="Memeriksa Bentrok Praktik &amp; Disetujui"/>
+          <node xmi:type="uml:DecisionNode" xmi:id="AN_MHS_DEC1" name="Bentrok Praktik/Disetujui?"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_MHS_ERR_BENTROK" name="Menolak &amp; Pesan Bentrok"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_MHS_CEK_TEORI" name="Pemeriksaan Irisan Teori"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_MHS_SIMPAN" name="Menyimpan Pengajuan (menunggu) &amp; Snapshot"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_MHS_KIRIM_NOTIF" name="Mengirim Notifikasi ke Dosen"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_MHS_SUKSES" name="Konfirmasi Sukses Pengajuan"/>
+          <node xmi:type="uml:ActivityFinalNode" xmi:id="AN_MHS_FINAL" name="Final"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_MHS_1" source="AN_MHS_INIT" target="AN_MHS_PILIH_DOSEN"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_MHS_2" source="AN_MHS_PILIH_DOSEN" target="AN_MHS_TENTUKAN_WAKTU"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_MHS_3" source="AN_MHS_TENTUKAN_WAKTU" target="AN_MHS_ISI_ALASAN"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_MHS_4" source="AN_MHS_ISI_ALASAN" target="AN_MHS_SUBMIT"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_MHS_5" source="AN_MHS_SUBMIT" target="AN_MHS_CEK_WAKTU"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_MHS_6" source="AN_MHS_CEK_WAKTU" target="AN_MHS_CEK_BENTROK"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_MHS_7" source="AN_MHS_CEK_BENTROK" target="AN_MHS_DEC1"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_MHS_8" source="AN_MHS_DEC1" target="AN_MHS_ERR_BENTROK"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_MHS_9" source="AN_MHS_ERR_BENTROK" target="AN_MHS_FINAL"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_MHS_10" source="AN_MHS_DEC1" target="AN_MHS_CEK_TEORI"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_MHS_11" source="AN_MHS_CEK_TEORI" target="AN_MHS_SIMPAN"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_MHS_12" source="AN_MHS_SIMPAN" target="AN_MHS_KIRIM_NOTIF"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_MHS_13" source="AN_MHS_KIRIM_NOTIF" target="AN_MHS_SUKSES"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_MHS_14" source="AN_MHS_SUKSES" target="AN_MHS_FINAL"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Activity" xmi:id="ACT_DSN_REVIEW" name="Activity Dosen Penentuan Jadwal">
+          <node xmi:type="uml:InitialNode" xmi:id="AN_DSN_INIT" name="Initial"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_DSN_REVIEW" name="Meninjau Pengajuan Masuk"/>
+          <node xmi:type="uml:DecisionNode" xmi:id="AN_DSN_DEC" name="Tindakan Dosen"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_DSN_LOCK" name="Validasi Ulang Bentrok Waktu"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_DSN_APPROVE" name="Update status='disetujui'"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_DSN_NOTIF_APP" name="Kirim Notifikasi Disetujui"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_DSN_PROPOSE" name="Input Usulan Tanggal/Jam Baru"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_DSN_SAVE_PROP" name="Update status='usul_jadwal'"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_DSN_MHS_CONFIRM" name="Mahasiswa Mengonfirmasi Usulan"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_DSN_UPDATE_CONFIRMED" name="Update Jadwal &amp; Disetujui"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_DSN_REJECT" name="Update status='ditolak' &amp; Alasan"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_DSN_NOTIF_REJ" name="Kirim Notifikasi Ditolak"/>
+          <node xmi:type="uml:MergeNode" xmi:id="AN_DSN_MERGE" name="Merge"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_DSN_COMPLETE" name="Tandai Selesai Pertemuan"/>
+          <node xmi:type="uml:ActivityFinalNode" xmi:id="AN_DSN_FINAL" name="Final"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_DSN_1" source="AN_DSN_INIT" target="AN_DSN_REVIEW"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_DSN_2" source="AN_DSN_REVIEW" target="AN_DSN_DEC"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_DSN_3" source="AN_DSN_DEC" target="AN_DSN_LOCK"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_DSN_4" source="AN_DSN_LOCK" target="AN_DSN_APPROVE"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_DSN_5" source="AN_DSN_APPROVE" target="AN_DSN_NOTIF_APP"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_DSN_6" source="AN_DSN_NOTIF_APP" target="AN_DSN_MERGE"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_DSN_7" source="AN_DSN_DEC" target="AN_DSN_PROPOSE"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_DSN_8" source="AN_DSN_PROPOSE" target="AN_DSN_SAVE_PROP"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_DSN_9" source="AN_DSN_SAVE_PROP" target="AN_DSN_MHS_CONFIRM"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_DSN_10" source="AN_DSN_MHS_CONFIRM" target="AN_DSN_UPDATE_CONFIRMED"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_DSN_11" source="AN_DSN_UPDATE_CONFIRMED" target="AN_DSN_MERGE"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_DSN_12" source="AN_DSN_DEC" target="AN_DSN_REJECT"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_DSN_13" source="AN_DSN_REJECT" target="AN_DSN_NOTIF_REJ"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_DSN_14" source="AN_DSN_NOTIF_REJ" target="AN_DSN_MERGE"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_DSN_15" source="AN_DSN_MERGE" target="AN_DSN_COMPLETE"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_DSN_16" source="AN_DSN_COMPLETE" target="AN_DSN_FINAL"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Activity" xmi:id="ACT_ADMIN_JUR_IMPORT" name="Activity Admin Jurusan Impor Jadwal &amp; Akun">
+          <node xmi:type="uml:InitialNode" xmi:id="AN_IMP_INIT" name="Initial"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_IMP_UPLOAD" name="Mengunggah Berkas XLSX"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_IMP_PARSE" name="Membaca &amp; Parsing Sel Berkas"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_IMP_VAL_HEADER" name="Validasi Struktur Kolom Berkas"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_IMP_VAL_SCOPE" name="Validasi Lingkup Jurusan &amp; Prodi"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_IMP_TX_BEGIN" name="Memulai Transaksi Basis Data"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_IMP_VAL_ROWS" name="Validasi Format Nilai &amp; Duplikasi"/>
+          <node xmi:type="uml:DecisionNode" xmi:id="AN_IMP_DEC" name="Seluruh Baris Valid?"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_IMP_ROLLBACK" name="Rollback Transaksi"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_IMP_ERR_LIST" name="Menampilkan Daftar Galat Per Baris"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_IMP_INSERT_BATCH" name="Menyisipkan Baris Data ke DB"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_IMP_COMMIT" name="Commit Transaksi Basis Data"/>
+          <node xmi:type="uml:OpaqueAction" xmi:id="AN_IMP_SUCCESS" name="Menampilkan Ringkasan Berhasil"/>
+          <node xmi:type="uml:ActivityFinalNode" xmi:id="AN_IMP_FINAL" name="Final"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_IMP_1" source="AN_IMP_INIT" target="AN_IMP_UPLOAD"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_IMP_2" source="AN_IMP_UPLOAD" target="AN_IMP_PARSE"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_IMP_3" source="AN_IMP_PARSE" target="AN_IMP_VAL_HEADER"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_IMP_4" source="AN_IMP_VAL_HEADER" target="AN_IMP_VAL_SCOPE"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_IMP_5" source="AN_IMP_VAL_SCOPE" target="AN_IMP_TX_BEGIN"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_IMP_6" source="AN_IMP_TX_BEGIN" target="AN_IMP_VAL_ROWS"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_IMP_7" source="AN_IMP_VAL_ROWS" target="AN_IMP_DEC"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_IMP_8" source="AN_IMP_DEC" target="AN_IMP_ROLLBACK"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_IMP_9" source="AN_IMP_ROLLBACK" target="AN_IMP_ERR_LIST"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_IMP_10" source="AN_IMP_ERR_LIST" target="AN_IMP_FINAL"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_IMP_11" source="AN_IMP_DEC" target="AN_IMP_INSERT_BATCH"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_IMP_12" source="AN_IMP_INSERT_BATCH" target="AN_IMP_COMMIT"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_IMP_13" source="AN_IMP_COMMIT" target="AN_IMP_SUCCESS"/>
+          <edge xmi:type="uml:ControlFlow" xmi:id="ED_IMP_14" source="AN_IMP_SUCCESS" target="AN_IMP_FINAL"/>
+        </packagedElement>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Package" xmi:id="EAPK_SEQUENCE" name="Sequence Model">
+        <packagedElement xmi:type="uml:Collaboration" xmi:id="COL_SEQ_MHS" name="Collaboration Mahasiswa Pengajuan">
+          <ownedBehavior xmi:type="uml:Interaction" xmi:id="INT_SEQ_MHS" name="Interaction Mahasiswa Pengajuan">
+            <lifeline xmi:type="uml:Lifeline" xmi:id="LL_MHS_ACTOR" name="Mahasiswa" represents="EAID_ACT_MHS"/>
+            <lifeline xmi:type="uml:Lifeline" xmi:id="LL_MHS_UI" name="JanjiTemuUI" represents="CLS_MAHASISWA"/>
+            <lifeline xmi:type="uml:Lifeline" xmi:id="LL_MHS_CTRL" name="MeetingController" represents="CLS_MEETING_SVC"/>
+            <lifeline xmi:type="uml:Lifeline" xmi:id="LL_MHS_SVC" name="NotificationService" represents="CLS_NOTIF_SVC"/>
+            <lifeline xmi:type="uml:Lifeline" xmi:id="LL_MHS_DB" name="Database" represents="CLS_PERTEMUAN"/>
+            <message xmi:type="uml:Message" xmi:id="MSG_MHS_1" name="submitJanjiTemu(dosenId, tgl, jamMulai, jamSelesai, jenis, alasan)" sendEvent="LL_MHS_ACTOR" receiveEvent="LL_MHS_UI"/>
+            <message xmi:type="uml:Message" xmi:id="MSG_MHS_2" name="handleRequest(formData)" sendEvent="LL_MHS_UI" receiveEvent="LL_MHS_CTRL"/>
+            <message xmi:type="uml:Message" xmi:id="MSG_MHS_3" name="validateTimeRange() &amp; checkCollision()" sendEvent="LL_MHS_CTRL" receiveEvent="LL_MHS_CTRL"/>
+            <message xmi:type="uml:Message" xmi:id="MSG_MHS_4" name="INSERT INTO permintaan_pertemuan (status='menunggu')" sendEvent="LL_MHS_CTRL" receiveEvent="LL_MHS_DB"/>
+            <message xmi:type="uml:Message" xmi:id="MSG_MHS_5" name="sendNotification(dosenUserId, pesan, tautan)" sendEvent="LL_MHS_CTRL" receiveEvent="LL_MHS_SVC"/>
+            <message xmi:type="uml:Message" xmi:id="MSG_MHS_6" name="INSERT INTO notifikasi" sendEvent="LL_MHS_SVC" receiveEvent="LL_MHS_DB"/>
+            <message xmi:type="uml:Message" xmi:id="MSG_MHS_7" name="redirectSuccess('Permintaan berhasil diajukan')" sendEvent="LL_MHS_CTRL" receiveEvent="LL_MHS_UI"/>
+            <message xmi:type="uml:Message" xmi:id="MSG_MHS_8" name="renderFlash('Menunggu Konfirmasi')" sendEvent="LL_MHS_UI" receiveEvent="LL_MHS_ACTOR"/>
+          </ownedBehavior>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Collaboration" xmi:id="COL_SEQ_DOSEN" name="Collaboration Dosen Usulan Waktu">
+          <ownedBehavior xmi:type="uml:Interaction" xmi:id="INT_SEQ_DOSEN" name="Interaction Dosen Usulan Waktu">
+            <lifeline xmi:type="uml:Lifeline" xmi:id="LL_DSN_ACTOR" name="Dosen" represents="EAID_ACT_DOSEN"/>
+            <lifeline xmi:type="uml:Lifeline" xmi:id="LL_DSN_UI" name="DosenPertemuanUI" represents="CLS_DOSEN"/>
+            <lifeline xmi:type="uml:Lifeline" xmi:id="LL_DSN_CTRL" name="MeetingController" represents="CLS_MEETING_SVC"/>
+            <lifeline xmi:type="uml:Lifeline" xmi:id="LL_DSN_DB" name="Database" represents="CLS_PERTEMUAN"/>
+            <lifeline xmi:type="uml:Lifeline" xmi:id="LL_DSN_MHS_UI" name="MhsPertemuanUI" represents="CLS_MAHASISWA"/>
+            <lifeline xmi:type="uml:Lifeline" xmi:id="LL_DSN_MHS" name="Mahasiswa" represents="EAID_ACT_MHS"/>
+            <message xmi:type="uml:Message" xmi:id="MSG_DSN_1" name="proposeNewSchedule(id, usulTgl, usulJam)" sendEvent="LL_DSN_ACTOR" receiveEvent="LL_DSN_UI"/>
+            <message xmi:type="uml:Message" xmi:id="MSG_DSN_2" name="handlePropose(id, params)" sendEvent="LL_DSN_UI" receiveEvent="LL_DSN_CTRL"/>
+            <message xmi:type="uml:Message" xmi:id="MSG_DSN_3" name="UPDATE status='usul_jadwal', usulParams" sendEvent="LL_DSN_CTRL" receiveEvent="LL_DSN_DB"/>
+            <message xmi:type="uml:Message" xmi:id="MSG_DSN_4" name="INSERT INTO notifikasi (mhs_user_id)" sendEvent="LL_DSN_CTRL" receiveEvent="LL_DSN_DB"/>
+            <message xmi:type="uml:Message" xmi:id="MSG_DSN_5" name="redirectSuccess('Usulan terkirim')" sendEvent="LL_DSN_CTRL" receiveEvent="LL_DSN_UI"/>
+            <message xmi:type="uml:Message" xmi:id="MSG_DSN_6" name="reviewProposal()" sendEvent="LL_DSN_MHS" receiveEvent="LL_DSN_MHS_UI"/>
+            <message xmi:type="uml:Message" xmi:id="MSG_DSN_7" name="confirmProposal(meetingId)" sendEvent="LL_DSN_MHS_UI" receiveEvent="LL_DSN_CTRL"/>
+            <message xmi:type="uml:Message" xmi:id="MSG_DSN_8" name="UPDATE tgl=usulTgl, status='disetujui'" sendEvent="LL_DSN_CTRL" receiveEvent="LL_DSN_DB"/>
+            <message xmi:type="uml:Message" xmi:id="MSG_DSN_9" name="INSERT INTO notifikasi (dosen_user_id)" sendEvent="LL_DSN_CTRL" receiveEvent="LL_DSN_DB"/>
+            <message xmi:type="uml:Message" xmi:id="MSG_DSN_10" name="renderSuccess('Pertemuan disetujui')" sendEvent="LL_DSN_CTRL" receiveEvent="LL_DSN_MHS_UI"/>
+          </ownedBehavior>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Collaboration" xmi:id="COL_SEQ_STATUS" name="Collaboration Pembaruan Status Ketersediaan">
+          <ownedBehavior xmi:type="uml:Interaction" xmi:id="INT_SEQ_STATUS" name="Interaction Pembaruan Status Ketersediaan">
+            <lifeline xmi:type="uml:Lifeline" xmi:id="LL_STAT_ACTOR" name="Dosen" represents="EAID_ACT_DOSEN"/>
+            <lifeline xmi:type="uml:Lifeline" xmi:id="LL_STAT_UI" name="DashboardUI" represents="CLS_DOSEN"/>
+            <lifeline xmi:type="uml:Lifeline" xmi:id="LL_STAT_CTRL" name="StatusController" represents="CLS_STATUS"/>
+            <lifeline xmi:type="uml:Lifeline" xmi:id="LL_STAT_DB" name="Database" represents="CLS_STATUS"/>
+            <message xmi:type="uml:Message" xmi:id="MSG_STAT_1" name="selectStatus(status, catatan, berlakuSampai)" sendEvent="LL_STAT_ACTOR" receiveEvent="LL_STAT_UI"/>
+            <message xmi:type="uml:Message" xmi:id="MSG_STAT_2" name="POST /dosen/status-update.php (CSRF, data)" sendEvent="LL_STAT_UI" receiveEvent="LL_STAT_CTRL"/>
+            <message xmi:type="uml:Message" xmi:id="MSG_STAT_3" name="verifyCSRF() &amp; validateStatus()" sendEvent="LL_STAT_CTRL" receiveEvent="LL_STAT_CTRL"/>
+            <message xmi:type="uml:Message" xmi:id="MSG_STAT_4" name="INSERT ... ON DUPLICATE KEY UPDATE status" sendEvent="LL_STAT_CTRL" receiveEvent="LL_STAT_DB"/>
+            <message xmi:type="uml:Message" xmi:id="MSG_STAT_5" name="return success" sendEvent="LL_STAT_DB" receiveEvent="LL_STAT_CTRL"/>
+            <message xmi:type="uml:Message" xmi:id="MSG_STAT_6" name="redirectSuccess('Status diperbarui')" sendEvent="LL_STAT_CTRL" receiveEvent="LL_STAT_UI"/>
+            <message xmi:type="uml:Message" xmi:id="MSG_STAT_7" name="renderUpdatedBadge()" sendEvent="LL_STAT_UI" receiveEvent="LL_STAT_ACTOR"/>
+          </ownedBehavior>
+        </packagedElement>
+      </packagedElement>
+    </packagedElement>
+  </uml:Model>
+  <xmi:Extension extender="Enterprise Architect" extenderID="6.5">
+    <diagrams>
+      <diagram xmi:id="EAID_DG_ERD">
+        <model package="EAPK_CLASS"/>
+        <properties name="Gambar 4. Rancangan ERD S-LECTURA" type="Logical"/>
+        <elements>
+          <element geometry="Left=50;Top=50;Right=200;Bottom=150;" subject="CLS_JURUSAN"/>
+          <element geometry="Left=260;Top=50;Right=420;Bottom=160;" subject="CLS_PRODI"/>
+          <element geometry="Left=480;Top=50;Right=640;Bottom=170;" subject="CLS_KELAS"/>
+          <element geometry="Left=700;Top=50;Right=850;Bottom=150;" subject="CLS_MATA_KULIAH"/>
+          <element geometry="Left=50;Top=240;Right=210;Bottom=440;" subject="CLS_USER"/>
+          <element geometry="Left=50;Top=490;Right=210;Bottom=600;" subject="CLS_ADMIN_JURUSAN"/>
+          <element geometry="Left=260;Top=240;Right=430;Bottom=420;" subject="CLS_DOSEN"/>
+          <element geometry="Left=480;Top=240;Right=640;Bottom=420;" subject="CLS_MAHASISWA"/>
+          <element geometry="Left=700;Top=240;Right=880;Bottom=500;" subject="CLS_JADWAL"/>
+          <element geometry="Left=260;Top=490;Right=430;Bottom=650;" subject="CLS_SLOT"/>
+          <element geometry="Left=480;Top=490;Right=640;Bottom=630;" subject="CLS_STATUS"/>
+          <element geometry="Left=480;Top=690;Right=710;Bottom=960;" subject="CLS_PERTEMUAN"/>
+          <element geometry="Left=50;Top=690;Right=230;Bottom=830;" subject="CLS_NOTIFIKASI"/>
+        </elements>
+      </diagram>
+      <diagram xmi:id="EAID_DG_UC_ADMIN">
+        <model package="EAPK_USECASE"/>
+        <properties name="Gambar 5. Use Case Diagram Administrator Utama" type="Use Case"/>
+        <elements>
+          <element geometry="Left=80;Top=260;Right=140;Bottom=360;" subject="EAID_ACT_ADMIN"/>
+          <element geometry="Left=300;Top=40;Right=460;Bottom=100;" subject="EAID_UC01"/>
+          <element geometry="Left=300;Top=120;Right=460;Bottom=180;" subject="EAID_UC02"/>
+          <element geometry="Left=300;Top=200;Right=460;Bottom=260;" subject="EAID_UC04"/>
+          <element geometry="Left=300;Top=280;Right=460;Bottom=340;" subject="EAID_UC05"/>
+          <element geometry="Left=300;Top=360;Right=460;Bottom=420;" subject="EAID_UC07"/>
+          <element geometry="Left=300;Top=440;Right=460;Bottom=500;" subject="EAID_UC08"/>
+          <element geometry="Left=300;Top=520;Right=520;Bottom=580;" subject="EAID_UC09"/>
+          <element geometry="Left=300;Top=600;Right=490;Bottom=660;" subject="EAID_UC10"/>
+        </elements>
+      </diagram>
+      <diagram xmi:id="EAID_DG_UC_ADMIN_JUR">
+        <model package="EAPK_USECASE"/>
+        <properties name="Gambar 6. Use Case Diagram Admin Jurusan" type="Use Case"/>
+        <elements>
+          <element geometry="Left=80;Top=240;Right=140;Bottom=340;" subject="EAID_ACT_ADMIN_JUR"/>
+          <element geometry="Left=300;Top=40;Right=460;Bottom=100;" subject="EAID_UC01"/>
+          <element geometry="Left=300;Top=120;Right=460;Bottom=180;" subject="EAID_UC02"/>
+          <element geometry="Left=300;Top=200;Right=520;Bottom=260;" subject="EAID_UC11"/>
+          <element geometry="Left=300;Top=280;Right=540;Bottom=340;" subject="EAID_UC12"/>
+          <element geometry="Left=300;Top=360;Right=520;Bottom=420;" subject="EAID_UC13"/>
+          <element geometry="Left=300;Top=440;Right=520;Bottom=500;" subject="EAID_UC14"/>
+        </elements>
+      </diagram>
+      <diagram xmi:id="EAID_DG_UC_DOSEN">
+        <model package="EAPK_USECASE"/>
+        <properties name="Gambar 7. Use Case Diagram Dosen" type="Use Case"/>
+        <elements>
+          <element geometry="Left=80;Top=300;Right=140;Bottom=400;" subject="EAID_ACT_DOSEN"/>
+          <element geometry="Left=300;Top=40;Right=460;Bottom=100;" subject="EAID_UC01"/>
+          <element geometry="Left=300;Top=120;Right=460;Bottom=180;" subject="EAID_UC02"/>
+          <element geometry="Left=300;Top=200;Right=520;Bottom=260;" subject="EAID_UC15"/>
+          <element geometry="Left=300;Top=280;Right=500;Bottom=340;" subject="EAID_UC16"/>
+          <element geometry="Left=300;Top=360;Right=500;Bottom=420;" subject="EAID_UC17"/>
+          <element geometry="Left=300;Top=440;Right=510;Bottom=500;" subject="EAID_UC18"/>
+          <element geometry="Left=300;Top=520;Right=490;Bottom=580;" subject="EAID_UC19"/>
+          <element geometry="Left=300;Top=600;Right=460;Bottom=660;" subject="EAID_UC25"/>
+          <element geometry="Left=580;Top=520;Right=730;Bottom=580;" subject="EAID_UC26"/>
+          <element geometry="Left=580;Top=360;Right=720;Bottom=420;" subject="EAID_UC27"/>
+          <element geometry="Left=580;Top=600;Right=720;Bottom=660;" subject="EAID_UC28"/>
+        </elements>
+      </diagram>
+      <diagram xmi:id="EAID_DG_UC_MHS">
+        <model package="EAPK_USECASE"/>
+        <properties name="Gambar 8. Use Case Diagram Mahasiswa" type="Use Case"/>
+        <elements>
+          <element geometry="Left=80;Top=280;Right=140;Bottom=380;" subject="EAID_ACT_MHS"/>
+          <element geometry="Left=300;Top=40;Right=460;Bottom=100;" subject="EAID_UC01"/>
+          <element geometry="Left=300;Top=120;Right=460;Bottom=180;" subject="EAID_UC02"/>
+          <element geometry="Left=300;Top=200;Right=520;Bottom=260;" subject="EAID_UC03"/>
+          <element geometry="Left=300;Top=280;Right=490;Bottom=340;" subject="EAID_UC20"/>
+          <element geometry="Left=300;Top=360;Right=510;Bottom=420;" subject="EAID_UC21"/>
+          <element geometry="Left=300;Top=440;Right=460;Bottom=500;" subject="EAID_UC22"/>
+          <element geometry="Left=300;Top=520;Right=520;Bottom=580;" subject="EAID_UC23"/>
+          <element geometry="Left=300;Top=600;Right=510;Bottom=660;" subject="EAID_UC24"/>
+          <element geometry="Left=300;Top=680;Right=460;Bottom=740;" subject="EAID_UC25"/>
+          <element geometry="Left=580;Top=440;Right=720;Bottom=500;" subject="EAID_UC27"/>
+          <element geometry="Left=580;Top=560;Right=720;Bottom=620;" subject="EAID_UC28"/>
+        </elements>
+      </diagram>
+      <diagram xmi:id="EAID_DG_CLASS">
+        <model package="EAPK_CLASS"/>
+        <properties name="Gambar 9. Class Diagram S-LECTURA (19 Kelas)" type="Logical"/>
+        <elements>
+          <element geometry="Left=50;Top=40;Right=210;Bottom=150;" subject="CLS_JURUSAN"/>
+          <element geometry="Left=270;Top=40;Right=440;Bottom=160;" subject="CLS_PRODI"/>
+          <element geometry="Left=500;Top=40;Right=670;Bottom=170;" subject="CLS_KELAS"/>
+          <element geometry="Left=730;Top=40;Right=890;Bottom=150;" subject="CLS_MATA_KULIAH"/>
+          <element geometry="Left=50;Top=230;Right=220;Bottom=450;" subject="CLS_USER"/>
+          <element geometry="Left=50;Top=510;Right=220;Bottom=640;" subject="CLS_ADMIN_JURUSAN"/>
+          <element geometry="Left=270;Top=230;Right=450;Bottom=440;" subject="CLS_DOSEN"/>
+          <element geometry="Left=500;Top=230;Right=670;Bottom=440;" subject="CLS_MAHASISWA"/>
+          <element geometry="Left=730;Top=230;Right=930;Bottom=520;" subject="CLS_JADWAL"/>
+          <element geometry="Left=270;Top=500;Right=450;Bottom=680;" subject="CLS_SLOT"/>
+          <element geometry="Left=500;Top=500;Right=670;Bottom=660;" subject="CLS_STATUS"/>
+          <element geometry="Left=500;Top=720;Right=730;Bottom=1020;" subject="CLS_PERTEMUAN"/>
+          <element geometry="Left=50;Top=720;Right=230;Bottom=870;" subject="CLS_NOTIFIKASI"/>
+          <element geometry="Left=780;Top=570;Right=950;Bottom=660;" subject="CLS_DB_CONN"/>
+          <element geometry="Left=50;Top=930;Right=250;Bottom=1060;" subject="CLS_AUTH_SVC"/>
+          <element geometry="Left=780;Top=710;Right=980;Bottom=850;" subject="CLS_MEETING_SVC"/>
+          <element geometry="Left=780;Top=880;Right=990;Bottom=990;" subject="CLS_SCHEDULE_SVC"/>
+          <element geometry="Left=270;Top=930;Right=480;Bottom=1060;" subject="CLS_USER_SVC"/>
+          <element geometry="Left=270;Top=750;Right=450;Bottom=870;" subject="CLS_NOTIF_SVC"/>
+        </elements>
+      </diagram>
+      <diagram xmi:id="EAID_DG_ACT_AUTH">
+        <model package="EAPK_ACTIVITY"/>
+        <properties name="Gambar 10. Activity Diagram Autentikasi Pengguna &amp; Status Aktif" type="Activity"/>
+        <elements>
+          <element geometry="Left=180;Top=30;Right=200;Bottom=50;" subject="AN_AUTH_INIT"/>
+          <element geometry="Left=110;Top=80;Right=270;Bottom=130;" subject="AN_AUTH_INPUT"/>
+          <element geometry="Left=110;Top=160;Right=270;Bottom=210;" subject="AN_AUTH_VALIDATE"/>
+          <element geometry="Left=170;Top=240;Right=210;Bottom=280;" subject="AN_AUTH_DEC1"/>
+          <element geometry="Left=320;Top=235;Right=490;Bottom=285;" subject="AN_AUTH_ERR"/>
+          <element geometry="Left=100;Top=320;Right=280;Bottom=370;" subject="AN_AUTH_BCRYPT"/>
+          <element geometry="Left=100;Top=400;Right=280;Bottom=450;" subject="AN_AUTH_SESS"/>
+          <element geometry="Left=170;Top=480;Right=210;Bottom=520;" subject="AN_AUTH_DEC2"/>
+          <element geometry="Left=260;Top=540;Right=460;Bottom=590;" subject="AN_AUTH_REDIRECT_CHANGE"/>
+          <element geometry="Left=260;Top=620;Right=460;Bottom=670;" subject="AN_AUTH_INPUT_NEW_PASS"/>
+          <element geometry="Left=260;Top=700;Right=460;Bottom=750;" subject="AN_AUTH_SAVE_PASS"/>
+          <element geometry="Left=80;Top=580;Right=240;Bottom=630;" subject="AN_AUTH_REDIRECT_DASH"/>
+          <element geometry="Left=145;Top=710;Right=175;Bottom=740;" subject="AN_AUTH_FINAL"/>
+        </elements>
+      </diagram>
+      <diagram xmi:id="EAID_DG_ACT_MHS">
+        <model package="EAPK_ACTIVITY"/>
+        <properties name="Gambar 11. Activity Diagram Mahasiswa Pengajuan Pertemuan" type="Activity"/>
+        <elements>
+          <element geometry="Left=180;Top=30;Right=200;Bottom=50;" subject="AN_MHS_INIT"/>
+          <element geometry="Left=90;Top=80;Right=290;Bottom=130;" subject="AN_MHS_PILIH_DOSEN"/>
+          <element geometry="Left=80;Top=160;Right=300;Bottom=210;" subject="AN_MHS_TENTUKAN_WAKTU"/>
+          <element geometry="Left=80;Top=240;Right=300;Bottom=290;" subject="AN_MHS_ISI_ALASAN"/>
+          <element geometry="Left=110;Top=320;Right=270;Bottom=370;" subject="AN_MHS_SUBMIT"/>
+          <element geometry="Left=100;Top=400;Right=280;Bottom=450;" subject="AN_MHS_CEK_WAKTU"/>
+          <element geometry="Left=80;Top=480;Right=300;Bottom=530;" subject="AN_MHS_CEK_BENTROK"/>
+          <element geometry="Left=170;Top=560;Right=210;Bottom=600;" subject="AN_MHS_DEC1"/>
+          <element geometry="Left=350;Top=555;Right=520;Bottom=605;" subject="AN_MHS_ERR_BENTROK"/>
+          <element geometry="Left=90;Top=630;Right=290;Bottom=680;" subject="AN_MHS_CEK_TEORI"/>
+          <element geometry="Left=70;Top=710;Right=310;Bottom=760;" subject="AN_MHS_SIMPAN"/>
+          <element geometry="Left=90;Top=790;Right=290;Bottom=840;" subject="AN_MHS_KIRIM_NOTIF"/>
+          <element geometry="Left=100;Top=870;Right=280;Bottom=920;" subject="AN_MHS_SUKSES"/>
+          <element geometry="Left=180;Top=950;Right=200;Bottom=970;" subject="AN_MHS_FINAL"/>
+        </elements>
+      </diagram>
+      <diagram xmi:id="EAID_DG_ACT_DOSEN">
+        <model package="EAPK_ACTIVITY"/>
+        <properties name="Gambar 12. Activity Diagram Dosen Penentuan Jadwal" type="Activity"/>
+        <elements>
+          <element geometry="Left=340;Top=30;Right=360;Bottom=50;" subject="AN_DSN_INIT"/>
+          <element geometry="Left=250;Top=80;Right=450;Bottom=130;" subject="AN_DSN_REVIEW"/>
+          <element geometry="Left=330;Top=160;Right=370;Bottom=200;" subject="AN_DSN_DEC"/>
+          <element geometry="Left=80;Top=230;Right=260;Bottom=280;" subject="AN_DSN_LOCK"/>
+          <element geometry="Left=80;Top=310;Right=260;Bottom=360;" subject="AN_DSN_APPROVE"/>
+          <element geometry="Left=80;Top=390;Right=260;Bottom=440;" subject="AN_DSN_NOTIF_APP"/>
+          <element geometry="Left=280;Top=230;Right=460;Bottom=280;" subject="AN_DSN_PROPOSE"/>
+          <element geometry="Left=280;Top=310;Right=460;Bottom=360;" subject="AN_DSN_SAVE_PROP"/>
+          <element geometry="Left=280;Top=390;Right=460;Bottom=440;" subject="AN_DSN_MHS_CONFIRM"/>
+          <element geometry="Left=280;Top=470;Right=460;Bottom=520;" subject="AN_DSN_UPDATE_CONFIRMED"/>
+          <element geometry="Left=480;Top=230;Right=660;Bottom=280;" subject="AN_DSN_REJECT"/>
+          <element geometry="Left=480;Top=310;Right=660;Bottom=360;" subject="AN_DSN_NOTIF_REJ"/>
+          <element geometry="Left=210;Top=550;Right=250;Bottom=590;" subject="AN_DSN_MERGE"/>
+          <element geometry="Left=150;Top=620;Right=370;Bottom=670;" subject="AN_DSN_COMPLETE"/>
+          <element geometry="Left=245;Top=710;Right=275;Bottom=740;" subject="AN_DSN_FINAL"/>
+        </elements>
+      </diagram>
+      <diagram xmi:id="EAID_DG_ACT_ADMIN_JUR">
+        <model package="EAPK_ACTIVITY"/>
+        <properties name="Gambar 13. Activity Diagram Admin Jurusan Impor Jadwal &amp; Akun" type="Activity"/>
+        <elements>
+          <element geometry="Left=180;Top=30;Right=200;Bottom=50;" subject="AN_IMP_INIT"/>
+          <element geometry="Left=90;Top=80;Right=290;Bottom=130;" subject="AN_IMP_UPLOAD"/>
+          <element geometry="Left=90;Top=160;Right=290;Bottom=210;" subject="AN_IMP_PARSE"/>
+          <element geometry="Left=90;Top=240;Right=290;Bottom=290;" subject="AN_IMP_VAL_HEADER"/>
+          <element geometry="Left=90;Top=320;Right=290;Bottom=370;" subject="AN_IMP_VAL_SCOPE"/>
+          <element geometry="Left=90;Top=400;Right=290;Bottom=450;" subject="AN_IMP_TX_BEGIN"/>
+          <element geometry="Left=80;Top=480;Right=300;Bottom=530;" subject="AN_IMP_VAL_ROWS"/>
+          <element geometry="Left=170;Top=560;Right=210;Bottom=600;" subject="AN_IMP_DEC"/>
+          <element geometry="Left=330;Top=555;Right=520;Bottom=605;" subject="AN_IMP_ROLLBACK"/>
+          <element geometry="Left=330;Top=635;Right=520;Bottom=685;" subject="AN_IMP_ERR_LIST"/>
+          <element geometry="Left=80;Top=630;Right=300;Bottom=680;" subject="AN_IMP_INSERT_BATCH"/>
+          <element geometry="Left=100;Top=710;Right=280;Bottom=760;" subject="AN_IMP_COMMIT"/>
+          <element geometry="Left=100;Top=790;Right=280;Bottom=840;" subject="AN_IMP_SUCCESS"/>
+          <element geometry="Left=180;Top=870;Right=200;Bottom=890;" subject="AN_IMP_FINAL"/>
+        </elements>
+      </diagram>
+      <diagram xmi:id="EAID_DG_SEQ_MHS">
+        <model package="EAPK_SEQUENCE"/>
+        <properties name="Gambar 14. Sequence Diagram Mahasiswa Pengajuan Janji Temu" type="Sequence"/>
+        <elements>
+          <element geometry="Left=60;Top=40;Right=130;Bottom=420;" subject="LL_MHS_ACTOR"/>
+          <element geometry="Left=200;Top=40;Right=280;Bottom=420;" subject="LL_MHS_UI"/>
+          <element geometry="Left=360;Top=40;Right=460;Bottom=420;" subject="LL_MHS_CTRL"/>
+          <element geometry="Left=530;Top=40;Right=620;Bottom=420;" subject="LL_MHS_SVC"/>
+          <element geometry="Left=690;Top=40;Right=760;Bottom=420;" subject="LL_MHS_DB"/>
+        </elements>
+      </diagram>
+      <diagram xmi:id="EAID_DG_SEQ_DOSEN">
+        <model package="EAPK_SEQUENCE"/>
+        <properties name="Gambar 15. Sequence Diagram Dosen Usulan Jadwal Alternatif" type="Sequence"/>
+        <elements>
+          <element geometry="Left=50;Top=40;Right=110;Bottom=420;" subject="LL_DSN_ACTOR"/>
+          <element geometry="Left=180;Top=40;Right=270;Bottom=420;" subject="LL_DSN_UI"/>
+          <element geometry="Left=340;Top=40;Right=430;Bottom=420;" subject="LL_DSN_CTRL"/>
+          <element geometry="Left=500;Top=40;Right=560;Bottom=420;" subject="LL_DSN_DB"/>
+          <element geometry="Left=630;Top=40;Right=710;Bottom=420;" subject="LL_DSN_MHS_UI"/>
+          <element geometry="Left=780;Top=40;Right=840;Bottom=420;" subject="LL_DSN_MHS"/>
+        </elements>
+      </diagram>
+      <diagram xmi:id="EAID_DG_SEQ_STATUS">
+        <model package="EAPK_SEQUENCE"/>
+        <properties name="Gambar 16. Sequence Diagram Pembaruan Status Ketersediaan 1-Klik" type="Sequence"/>
+        <elements>
+          <element geometry="Left=60;Top=40;Right=120;Bottom=360;" subject="LL_STAT_ACTOR"/>
+          <element geometry="Left=220;Top=40;Right=300;Bottom=360;" subject="LL_STAT_UI"/>
+          <element geometry="Left=410;Top=40;Right=500;Bottom=360;" subject="LL_STAT_CTRL"/>
+          <element geometry="Left=610;Top=40;Right=670;Bottom=360;" subject="LL_STAT_DB"/>
+        </elements>
+      </diagram>
+    </diagrams>
+  </xmi:Extension>
+</xmi:XMI>

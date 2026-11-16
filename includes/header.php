@@ -13,12 +13,22 @@ $user = current_user();
 $activePage = $active_page ?? '';
 $pageClass = $page_class ?? '';
 $unreadNotifications = 0;
+$userPhoto = null;
 if ($user) {
-    $stmtUnread = get_db_connection()->prepare(
+    $pdo = get_db_connection();
+    $stmtUnread = $pdo->prepare(
         "SELECT COUNT(*) FROM notifikasi WHERE user_id = :user_id AND dibaca_at IS NULL"
     );
     $stmtUnread->execute([':user_id' => $user['id']]);
     $unreadNotifications = (int)$stmtUnread->fetchColumn();
+    if ($user['role'] === 'mahasiswa') {
+        $stmtPhoto = $pdo->prepare("SELECT foto FROM mahasiswa WHERE user_id = :user_id LIMIT 1");
+        $stmtPhoto->execute([':user_id' => $user['id']]);
+        $photoPath = $stmtPhoto->fetchColumn();
+        if ($photoPath && is_file(__DIR__ . '/../' . $photoPath)) {
+            $userPhoto = $photoPath;
+        }
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -40,7 +50,7 @@ if ($user) {
 <body class="<?= e($pageClass) ?>">
 
 <!-- Navigasi Bar Utama -->
-<nav class="navbar navbar-expand-lg navbar-dark navbar-polinela sticky-top py-2">
+<nav class="navbar navbar-expand-xl navbar-dark navbar-polinela sticky-top py-2">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center gap-2" href="<?= BASE_URL ?>/index.php">
             <img class="site-brand-logo" src="<?= BASE_URL ?>/assets/img/branding/Logo-Polinela-New-Standart.png" alt="Logo Politeknik Negeri Lampung">
@@ -65,6 +75,11 @@ if ($user) {
                     <li class="nav-item">
                         <a class="nav-link <?= $activePage === 'pertemuan' ? 'active' : '' ?>" href="<?= BASE_URL ?>/mahasiswa/pertemuan.php">
                             <i class="bi bi-calendar2-heart me-1"></i>Janji Temu Saya
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= $activePage === 'profil' ? 'active' : '' ?>" href="<?= BASE_URL ?>/mahasiswa/profil.php">
+                            <i class="bi bi-person-lines-fill me-1"></i>Profil Saya
                         </a>
                     </li>
                 <?php elseif ($user && $user['role'] === 'dosen'): ?>
@@ -101,12 +116,7 @@ if ($user) {
                     </li>
                     <li class="nav-item">
                         <a class="nav-link <?= $activePage === 'users' ? 'active' : '' ?>" href="<?= BASE_URL ?>/admin/users.php">
-                            <i class="bi bi-people-fill me-1"></i>Pengguna
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <?= $activePage === 'dosen' ? 'active' : '' ?>" href="<?= BASE_URL ?>/admin/dosen.php">
-                            <i class="bi bi-person-badge-fill me-1"></i>Data Dosen
+                            <i class="bi bi-person-vcard me-1"></i>Admin Jurusan
                         </a>
                     </li>
                     <li class="nav-item">
@@ -132,7 +142,7 @@ if ($user) {
                     </li>
                     <li class="nav-item">
                         <a class="nav-link <?= $activePage === 'mahasiswa-jurusan' ? 'active' : '' ?>" href="<?= BASE_URL ?>/admin/mahasiswa.php">
-                            <i class="bi bi-person-vcard me-1"></i>Bantuan Akun Mahasiswa
+                            <i class="bi bi-person-vcard me-1"></i>Pilih Prodi & Pengguna
                         </a>
                     </li>
                     <li class="nav-item">
@@ -158,9 +168,13 @@ if ($user) {
                     </li>
                     <li class="nav-item dropdown">
                         <button class="nav-link dropdown-toggle d-flex align-items-center gap-2 py-1 px-2 rounded user-menu-toggle" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Menu akun <?= e($user['nama']) ?>">
-                            <span class="avatar-initial avatar-initial-sm bg-warning text-dark fw-bold">
-                                <?= strtoupper(substr($user['nama'], 0, 1)) ?>
-                            </span>
+                            <?php if ($userPhoto): ?>
+                                <img src="<?= BASE_URL . '/' . e($userPhoto) ?>" alt="" class="rounded-circle" style="width: 34px; height: 34px; object-fit: cover;">
+                            <?php else: ?>
+                                <span class="avatar-initial avatar-initial-sm bg-warning text-dark fw-bold">
+                                    <?= strtoupper(substr($user['nama'], 0, 1)) ?>
+                                </span>
+                            <?php endif; ?>
                             <div class="text-start pe-1">
                                 <span class="d-block fw-semibold text-white" style="font-size: 0.85rem; max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                     <?= e($user['nama']) ?>
@@ -177,6 +191,8 @@ if ($user) {
                             <li><hr class="dropdown-divider"></li>
                             <?php if ($user['role'] === 'dosen'): ?>
                                 <li><a class="dropdown-item" href="<?= BASE_URL ?>/dosen/profil.php"><i class="bi bi-person me-2"></i>Edit Profil Dosen</a></li>
+                            <?php elseif ($user['role'] === 'mahasiswa'): ?>
+                                <li><a class="dropdown-item" href="<?= BASE_URL ?>/mahasiswa/profil.php"><i class="bi bi-person me-2"></i>Edit Profil Mahasiswa</a></li>
                             <?php endif; ?>
                             <li><a class="dropdown-item" href="<?= BASE_URL ?>/ganti-password.php"><i class="bi bi-key me-2"></i>Ganti Kata Sandi</a></li>
                             <li><hr class="dropdown-divider"></li>

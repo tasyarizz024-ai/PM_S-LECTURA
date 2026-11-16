@@ -61,7 +61,7 @@ $sql = "SELECT d.*, u.nama, u.email, p.nama_prodi, j.nama_jurusan AS jurusan,
         JOIN program_studi p ON d.id_prodi = p.id
         JOIN jurusan j ON j.id = p.id_jurusan
         LEFT JOIN status_ketersediaan sk ON d.id = sk.id_dosen
-        WHERE p.id_jurusan = :jurusan";
+        WHERE p.id_jurusan = :jurusan AND u.aktif = 1";
 
 $params = [':jurusan' => $idJurusanMahasiswa];
 
@@ -106,7 +106,7 @@ require_once __DIR__ . '/../includes/header.php';
                     </span>
                     <h2 class="fw-bold text-dark mb-2">Smart Lecturer Availability System</h2>
                     <p class="text-secondary mb-0">
-                        Pantau jadwal mengajar mingguan, slot konsultasi, dan bimbingan Tugas Akhir dosen Politeknik Negeri Lampung secara transparan dan mandiri.
+                        Pantau jadwal mengajar mingguan, konsultasi, dan bimbingan umum dosen Politeknik Negeri Lampung secara transparan dan mandiri.
                     </p>
                 </div>
                 <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
@@ -170,7 +170,7 @@ require_once __DIR__ . '/../includes/header.php';
                     <option value="Tersedia" <?= $filterStatus === 'Tersedia' ? 'selected' : '' ?>>Tersedia</option>
                     <option value="Mengajar" <?= $filterStatus === 'Mengajar' ? 'selected' : '' ?>>Mengajar</option>
                     <option value="Hanya Konsultasi" <?= $filterStatus === 'Hanya Konsultasi' ? 'selected' : '' ?>>Hanya Konsultasi</option>
-                    <option value="Hanya Bimbingan" <?= $filterStatus === 'Hanya Bimbingan' ? 'selected' : '' ?>>Hanya Bimbingan</option>
+                    <option value="Hanya Bimbingan" <?= $filterStatus === 'Hanya Bimbingan' ? 'selected' : '' ?>>Hanya Bimbingan Umum</option>
                     <option value="Tidak Tersedia" <?= $filterStatus === 'Tidak Tersedia' ? 'selected' : '' ?>>Tidak Tersedia</option>
                 </select>
             </div>

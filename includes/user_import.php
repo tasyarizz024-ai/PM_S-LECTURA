@@ -1,47 +1,17 @@
 <?php
 
 require_once __DIR__ . '/schedule_xlsx.php';
+require_once __DIR__ . '/helpers.php';
 
 function user_xlsx_headers(string $role): array
 {
     if ($role === 'mahasiswa') {
-        return ['nama', 'email', 'npm', 'tanggal_lahir'];
+        return ['nama', 'email', 'npm'];
     }
     if ($role === 'dosen') {
-        return ['nama', 'email', 'nidn_nip', 'bidang_keahlian', 'tanggal_lahir'];
+        return ['nama', 'email', 'nidn_nip'];
     }
     throw new InvalidArgumentException('Jenis akun tidak valid.');
-}
-
-function user_import_password_from_birth_date(string $value): ?string
-{
-    $value = trim($value);
-    if (preg_match('/^(\d{2})[-\/](\d{2})[-\/](\d{4})$/', $value, $match)) {
-        $date = DateTimeImmutable::createFromFormat('!d-m-Y', $match[1] . '-' . $match[2] . '-' . $match[3]);
-        if (!$date || $date->format('d-m-Y') !== $match[1] . '-' . $match[2] . '-' . $match[3]) {
-            return null;
-        }
-    } elseif (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $value, $match)) {
-        $date = DateTimeImmutable::createFromFormat('!Y-m-d', $value);
-        if (!$date || $date->format('Y-m-d') !== $value) {
-            return null;
-        }
-    } elseif (is_numeric($value) && (float)$value > 0 && (float)$value < 2958466) {
-        $date = (new DateTimeImmutable('1899-12-30'))->modify('+' . (int)floor((float)$value) . ' days');
-    } else {
-        return null;
-    }
-
-    if (!$date || $date->format('Y-m-d') > (new DateTimeImmutable('today'))->format('Y-m-d')) {
-        return null;
-    }
-
-    $today = new DateTimeImmutable('today');
-    if ($date < $today->modify('-120 years')) {
-        return null;
-    }
-
-    return $date->format('dmY');
 }
 
 function validate_user_import(PDO $pdo, array $rows, int $prodiId, string $role): array
@@ -74,9 +44,6 @@ function validate_user_import(PDO $pdo, array $rows, int $prodiId, string $role)
         $email = trim((string)($row['email'] ?? ''));
         $npm = trim((string)($row['npm'] ?? ''));
         $nidn = trim((string)($row['nidn_nip'] ?? ''));
-        $expertise = trim((string)($row['bidang_keahlian'] ?? ''));
-        $birthDate = trim((string)($row['tanggal_lahir'] ?? ''));
-        $initialPassword = user_import_password_from_birth_date($birthDate);
         $rowErrors = [];
 
         if ($name === '' || mb_strlen($name) > 100) {
@@ -92,14 +59,7 @@ function validate_user_import(PDO $pdo, array $rows, int $prodiId, string $role)
             if ($nidn !== '' && mb_strlen($nidn) > 30) {
                 $rowErrors[] = 'NIDN/NIP maksimal 30 karakter';
             }
-            if ($expertise === '' || mb_strlen($expertise) > 150) {
-                $rowErrors[] = 'bidang keahlian wajib diisi (maksimal 150 karakter)';
-            }
         }
-        if ($initialPassword === null) {
-            $rowErrors[] = 'tanggal_lahir wajib berupa tanggal valid DD-MM-YYYY dan tidak boleh di masa depan';
-        }
-
         $emailKey = mb_strtolower($email);
         if ($email !== '' && isset($emailsInFile[$emailKey])) {
             $rowErrors[] = 'email duplikat di dalam file';
@@ -148,8 +108,7 @@ function validate_user_import(PDO $pdo, array $rows, int $prodiId, string $role)
             'email' => $email,
             'npm' => $role === 'mahasiswa' ? $npm : null,
             'nidn_nip' => $role === 'dosen' && $nidn !== '' ? $nidn : null,
-            'bidang_keahlian' => $role === 'dosen' ? $expertise : null,
-            'initial_password' => $initialPassword,
+            'bidang_keahlian' => $role === 'dosen' ? '' : null,
         ];
     }
 
@@ -181,7 +140,7 @@ function insert_user_import(PDO $pdo, array $rows, int $prodiId): array
     );
 
     foreach ($rows as $row) {
-        $temporaryPassword = $row['initial_password'];
+        $temporaryPassword = initial_user_password();
         $stmtUser->execute([
             ':nama' => $row['nama'],
             ':email' => $row['email'],

@@ -1,12 +1,12 @@
 -- Akun dan profil dosen contoh untuk prodi D4 Rekayasa Perangkat Lunak (TRPL).
--- Aman dijalankan ulang; akun menggunakan sandi awal "password" dan wajib menggantinya.
+-- Aman dijalankan ulang; akun menggunakan sandi awal "123456" dan wajib menggantinya.
 USE `s_lectura`;
 
 START TRANSACTION;
 
 INSERT INTO `users` (`nama`, `email`, `password_hash`, `role`, `must_change_password`)
 SELECT contoh.`nama`, contoh.`email`,
-       '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+       '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy',
        'dosen', 1
 FROM (
     SELECT 'Dosen TRPL 1' AS `nama`, 'trpl1@example.test' AS `email`

@@ -15,6 +15,10 @@ function e($value): string {
     return htmlspecialchars((string)($value ?? ''), ENT_QUOTES, 'UTF-8');
 }
 
+function initial_user_password(): string {
+    return '123456';
+}
+
 /**
  * Memastikan sesi aktif dengan konfigurasi cookie aman
  */

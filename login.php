@@ -8,6 +8,7 @@
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/includes/helpers.php';
 require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/login_throttle.php';
 
 // Jika sudah login, alihkan ke dashboard masing-masing
 if (is_logged_in()) {
@@ -40,49 +41,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (empty($errors)) {
-            $pdo = get_db_connection();
-            // Cari pengguna berdasarkan email, atau NPM (lewat tabel mahasiswa untuk mahasiswa,
-            // atau kolom email untuk dosen/admin)
-            $stmt = $pdo->prepare(
-                "SELECT u.* FROM users u WHERE u.email = :email
-                 UNION
-                 SELECT u.* FROM users u
-                 JOIN mahasiswa m ON m.user_id = u.id
-                 WHERE m.npm = :npm
-                 LIMIT 1"
-            );
-            $stmt->execute([':email' => $identifier, ':npm' => $identifier]);
-            $user = $stmt->fetch();
-
-            if ($user && (int)$user['aktif'] === 1 && password_verify($password, $user['password_hash'])) {
-                // Ambil npm dari tabel mahasiswa jika role mahasiswa
-                if ($user['role'] === 'mahasiswa') {
-                    $stmtNpm = $pdo->prepare("SELECT npm FROM mahasiswa WHERE user_id = :uid LIMIT 1");
-                    $stmtNpm->execute([':uid' => $user['id']]);
-                    $mhsRow = $stmtNpm->fetch();
-                    $user['npm'] = $mhsRow ? $mhsRow['npm'] : null;
-                }
-
-                login_user($user);
-
-                // Cek apakah perlu ganti password
-                if (!empty($user['must_change_password']) && (int)$user['must_change_password'] === 1) {
-                    set_flash('warning', 'Selamat datang! Anda wajib mengganti password sebelum melanjutkan.');
-                    redirect(BASE_URL . '/ganti-password.php');
-                }
-
-                set_flash('success', 'Selamat datang kembali, ' . $user['nama'] . '!');
-
-                // Alihkan ke halaman tujuan berdasarkan peran
-                match ($user['role']) {
-                    'admin'     => redirect(BASE_URL . '/admin/index.php'),
-                    'admin_jurusan' => redirect(BASE_URL . '/admin/mahasiswa.php'),
-                    'dosen'     => redirect(BASE_URL . '/dosen/index.php'),
-                    'mahasiswa' => redirect(BASE_URL . '/mahasiswa/index.php'),
-                    default     => redirect(BASE_URL . '/index.php'),
-                };
+            $remoteAddress = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+            $throttleState = login_throttle_check($identifier, $remoteAddress);
+            if ($throttleState['blocked']) {
+                $errors[] = 'Terlalu banyak percobaan login. Coba lagi dalam ' . $throttleState['retry_minutes'] . ' menit.';
             } else {
-                $errors[] = 'Kredensial tidak valid. Silakan periksa kembali Email/NPM dan kata sandi Anda.';
+                $pdo = get_db_connection();
+                // Cari pengguna berdasarkan email, atau NPM lewat tabel mahasiswa.
+                $stmt = $pdo->prepare(
+                    "SELECT u.* FROM users u WHERE u.email = :email
+                     UNION
+                     SELECT u.* FROM users u
+                     JOIN mahasiswa m ON m.user_id = u.id
+                     WHERE m.npm = :npm
+                     LIMIT 1"
+                );
+                $stmt->execute([':email' => $identifier, ':npm' => $identifier]);
+                $user = $stmt->fetch();
+
+                if ($user && (int)$user['aktif'] === 1 && password_verify($password, $user['password_hash'])) {
+                    login_throttle_clear($identifier, $remoteAddress);
+
+                    // Ambil npm dari tabel mahasiswa jika role mahasiswa.
+                    if ($user['role'] === 'mahasiswa') {
+                        $stmtNpm = $pdo->prepare("SELECT npm FROM mahasiswa WHERE user_id = :uid LIMIT 1");
+                        $stmtNpm->execute([':uid' => $user['id']]);
+                        $mhsRow = $stmtNpm->fetch();
+                        $user['npm'] = $mhsRow ? $mhsRow['npm'] : null;
+                    }
+
+                    login_user($user);
+
+                    if (!empty($user['must_change_password']) && (int)$user['must_change_password'] === 1) {
+                        set_flash('warning', 'Selamat datang! Anda wajib mengganti password sebelum melanjutkan.');
+                        redirect(BASE_URL . '/ganti-password.php');
+                    }
+
+                    set_flash('success', 'Selamat datang kembali, ' . $user['nama'] . '!');
+
+                    match ($user['role']) {
+                        'admin'     => redirect(BASE_URL . '/admin/index.php'),
+                        'admin_jurusan' => redirect(BASE_URL . '/admin/mahasiswa.php'),
+                        'dosen'     => redirect(BASE_URL . '/dosen/index.php'),
+                        'mahasiswa' => redirect(BASE_URL . '/mahasiswa/index.php'),
+                        default     => redirect(BASE_URL . '/index.php'),
+                    };
+                } else {
+                    $locked = login_throttle_record_failure($identifier, $remoteAddress);
+                    $errors[] = $locked
+                        ? 'Terlalu banyak percobaan login. Coba lagi dalam 15 menit.'
+                        : 'Kredensial tidak valid. Silakan periksa kembali Email/NPM dan kata sandi Anda.';
+                }
             }
         }
     }

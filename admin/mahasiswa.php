@@ -109,8 +109,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'email' => trim($_POST['email'] ?? ''),
                     'npm' => trim($_POST['npm'] ?? ''),
                     'nidn_nip' => trim($_POST['nidn_nip'] ?? ''),
-                    'bidang_keahlian' => trim($_POST['bidang_keahlian'] ?? ''),
-                    'tanggal_lahir' => trim($_POST['tanggal_lahir'] ?? ''),
                 ];
                 $result = validate_user_import($pdo, [$row], $selectedProdi, $accountRole);
                 $errors = $result['errors'];
@@ -150,7 +148,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $name = trim($_POST['nama'] ?? '');
                 $email = trim($_POST['email'] ?? '');
                 $nidn = trim($_POST['nidn_nip'] ?? '');
-                $expertise = trim($_POST['bidang_keahlian'] ?? '');
                 if ($name === '' || mb_strlen($name) > 100) {
                     $errors[] = 'Nama wajib diisi dan maksimal 100 karakter.';
                 }
@@ -172,9 +169,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $errors[] = 'NIDN/NIP sudah digunakan dosen lain.';
                     }
                 }
-                if ($expertise === '' || mb_strlen($expertise) > 150) {
-                    $errors[] = 'Bidang keahlian wajib diisi dan maksimal 150 karakter.';
-                }
                 if (!$errors) {
                     $pdo->beginTransaction();
                     try {
@@ -182,14 +176,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             "UPDATE users u
                              JOIN dosen d ON d.user_id = u.id
                              SET u.nama = :nama, u.email = :email,
-                                 d.nidn_nip = :nidn, d.bidang_keahlian = :expertise
+                                 d.nidn_nip = :nidn
                              WHERE u.id = :id AND u.role = 'dosen' AND d.id_prodi = :prodi"
                         );
                         $stmtUpdate->execute([
                             ':nama' => $name,
                             ':email' => $email,
                             ':nidn' => $nidn !== '' ? $nidn : null,
-                            ':expertise' => $expertise,
                             ':id' => $lecturerUserId,
                             ':prodi' => $selectedProdi,
                         ]);
@@ -205,27 +198,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
             } elseif ($action === 'reset_lecturer_password') {
-                $birthDatePassword = user_import_password_from_birth_date($_POST['tanggal_lahir'] ?? '');
-                if ($birthDatePassword === null) {
-                    $errors[] = 'Tanggal lahir tidak valid. Masukkan tanggal DD-MM-YYYY dan pastikan bukan tanggal di masa depan.';
-                } else {
-                    $stmtUpdate = $pdo->prepare(
-                        "UPDATE users u
-                         JOIN dosen d ON d.user_id = u.id
-                         SET u.password_hash = :password_hash, u.must_change_password = 1
-                         WHERE u.id = :id AND u.role = 'dosen' AND d.id_prodi = :prodi"
-                    );
-                    $stmtUpdate->execute([
-                        ':password_hash' => password_hash($birthDatePassword, PASSWORD_DEFAULT),
-                        ':id' => $lecturerUserId,
-                        ':prodi' => $selectedProdi,
-                    ]);
-                    if ($stmtUpdate->rowCount() === 1) {
-                        set_flash('success', 'Sandi dosen berhasil direset ke tanggal lahir (' . $birthDatePassword . '). Sampaikan secara pribadi; sandi wajib diganti saat login.');
-                        redirect(BASE_URL . '/admin/mahasiswa.php?prodi=' . $selectedProdi);
-                    }
-                    $errors[] = 'Sandi tidak berubah. Pastikan tanggal lahir benar dan coba lagi.';
+                $stmtUpdate = $pdo->prepare(
+                    "UPDATE users u
+                     JOIN dosen d ON d.user_id = u.id
+                     SET u.password_hash = :password_hash, u.must_change_password = 1
+                     WHERE u.id = :id AND u.role = 'dosen' AND d.id_prodi = :prodi"
+                );
+                $stmtUpdate->execute([
+                    ':password_hash' => password_hash(initial_user_password(), PASSWORD_DEFAULT),
+                    ':id' => $lecturerUserId,
+                    ':prodi' => $selectedProdi,
+                ]);
+                if ($stmtUpdate->rowCount() === 1) {
+                    set_flash('success', 'Sandi dosen berhasil direset ke 123456. Sampaikan secara pribadi; sandi wajib diganti saat login.');
+                    redirect(BASE_URL . '/admin/mahasiswa.php?prodi=' . $selectedProdi);
                 }
+                $errors[] = 'Sandi dosen tidak berubah. Silakan coba lagi.';
             } else {
                 $active = (int)($_POST['aktif'] ?? -1);
                 if (!in_array($active, [0, 1], true)) {
@@ -296,32 +284,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 redirect(BASE_URL . '/admin/mahasiswa.php?prodi=' . $selectedProdi);
             }
         } elseif ($action === 'reset_password') {
-            $birthDatePassword = user_import_password_from_birth_date($_POST['tanggal_lahir'] ?? '');
-            if ($birthDatePassword === null) {
-                $errors[] = 'Tanggal lahir tidak valid. Masukkan tanggal DD-MM-YYYY dan pastikan bukan tanggal di masa depan.';
-            } else {
-                $passwordHash = password_hash($birthDatePassword, PASSWORD_DEFAULT);
-                $stmtUpdate = $pdo->prepare(
-                    "UPDATE users u
-                     JOIN mahasiswa m ON m.user_id = u.id
-                     JOIN program_studi p ON p.id = m.id_prodi
-                     SET u.password_hash = :password_hash, u.must_change_password = 1
-                     WHERE u.id = :id AND u.role = 'mahasiswa' AND p.id = :prodi"
+            $stmtUpdate = $pdo->prepare(
+                "UPDATE users u
+                 JOIN mahasiswa m ON m.user_id = u.id
+                 JOIN program_studi p ON p.id = m.id_prodi
+                 SET u.password_hash = :password_hash, u.must_change_password = 1
+                 WHERE u.id = :id AND u.role = 'mahasiswa' AND p.id = :prodi"
+            );
+            $stmtUpdate->execute([
+                ':password_hash' => password_hash(initial_user_password(), PASSWORD_DEFAULT),
+                ':id' => $studentUserId,
+                ':prodi' => $selectedProdi,
+            ]);
+            if ($stmtUpdate->rowCount() === 1) {
+                set_flash(
+                    'success',
+                    'Sandi mahasiswa berhasil direset ke 123456. Sampaikan secara pribadi; sandi wajib diganti saat login.'
                 );
-                $stmtUpdate->execute([
-                    ':password_hash' => $passwordHash,
-                    ':id' => $studentUserId,
-                    ':prodi' => $selectedProdi,
-                ]);
-                if ($stmtUpdate->rowCount() === 1) {
-                    set_flash(
-                        'success',
-                        'Sandi mahasiswa berhasil direset ke tanggal lahir (' . $birthDatePassword . '). Sampaikan secara pribadi; sandi wajib diganti saat login.'
-                    );
-                    redirect(BASE_URL . '/admin/mahasiswa.php?prodi=' . $selectedProdi);
-                }
-                $errors[] = 'Sandi tidak berubah. Pastikan tanggal lahir benar dan coba lagi.';
+                redirect(BASE_URL . '/admin/mahasiswa.php?prodi=' . $selectedProdi);
             }
+            $errors[] = 'Sandi mahasiswa tidak berubah. Silakan coba lagi.';
         } elseif ($action === 'set_active') {
             $active = (int)($_POST['aktif'] ?? -1);
             if (!in_array($active, [0, 1], true)) {
@@ -492,7 +474,7 @@ require_once __DIR__ . '/../includes/header.php';
                     </div>
                     <div class="modal-body p-4">
                         <div class="alert alert-info py-2 small">
-                            Password awal dibuat dari tanggal lahir dalam format <code>DDMMYYYY</code>. Tanggal lahir tidak disimpan dan akun harus mengganti password saat login pertama.
+                            Password awal adalah <code>123456</code>. Akun wajib mengganti password saat login pertama.
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-semibold" for="manualAccountRole">Jenis akun</label>
@@ -517,14 +499,6 @@ require_once __DIR__ . '/../includes/header.php';
                             <div class="col-md-6 d-none" id="manualLecturerIdField">
                                 <label class="form-label fw-semibold" for="manualAccountNidn">NIDN/NIP <span class="fw-normal text-muted">(opsional)</span></label>
                                 <input class="form-control" type="text" name="nidn_nip" id="manualAccountNidn" maxlength="30" disabled>
-                            </div>
-                            <div class="col-12 d-none" id="manualLecturerExpertiseField">
-                                <label class="form-label fw-semibold" for="manualAccountExpertise">Bidang keahlian</label>
-                                <input class="form-control" type="text" name="bidang_keahlian" id="manualAccountExpertise" maxlength="150" disabled>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold" for="manualAccountBirthDate">Tanggal lahir</label>
-                                <input class="form-control" type="date" name="tanggal_lahir" id="manualAccountBirthDate" max="<?= date('Y-m-d') ?>" required>
                             </div>
                         </div>
                     </div>
@@ -565,7 +539,7 @@ require_once __DIR__ . '/../includes/header.php';
                     <button class="btn btn-polinela text-nowrap" type="submit"><i class="bi bi-upload me-1"></i>Validasi dan Impor</button>
                 </div>
             </form>
-            <div class="small text-muted mt-2">Tanggal lahir dipakai sebagai password awal dengan format <code>DDMMYYYY</code> (contoh: 7 Januari 2004 menjadi <code>07012004</code>), lalu wajib diganti saat login pertama. Data tanggal lahir tidak disimpan. Formatkan NPM/NIDN sebagai teks di Excel agar angka nol di depan tidak hilang.</div>
+            <div class="small text-muted mt-2">Password awal semua akun adalah <code>123456</code> dan wajib diganti saat login pertama. Template tidak memerlukan tanggal lahir. Formatkan NPM/NIDN sebagai teks di Excel agar angka nol di depan tidak hilang.</div>
         </div>
     </div>
 
@@ -688,10 +662,7 @@ require_once __DIR__ . '/../includes/header.php';
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                     </div>
                     <div class="modal-body">
-                        <p>Reset sandi untuk <strong id="resetStudentName"></strong>. Masukkan tanggal lahir mahasiswa untuk membuat sandi awal.</p>
-                        <label class="form-label" for="resetStudentBirthDate">Tanggal lahir</label>
-                        <input class="form-control" type="date" id="resetStudentBirthDate" name="tanggal_lahir" required>
-                        <div class="form-text">Sandi awal menjadi DDMMYYYY dan mahasiswa wajib menggantinya saat login.</div>
+                        <p>Reset sandi untuk <strong id="resetStudentName"></strong> ke <code>123456</code>. Mahasiswa wajib menggantinya saat login berikutnya.</p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
@@ -726,8 +697,7 @@ require_once __DIR__ . '/../includes/header.php';
                                 data-id="<?= (int)$lecturer['id'] ?>"
                                 data-nama="<?= e($lecturer['nama']) ?>"
                                 data-email="<?= e($lecturer['email']) ?>"
-                                data-nidn="<?= e($lecturer['nidn_nip'] ?? '') ?>"
-                                data-expertise="<?= e($lecturer['bidang_keahlian']) ?>">
+                                data-nidn="<?= e($lecturer['nidn_nip'] ?? '') ?>">
                                 <i class="bi bi-pencil me-1"></i>Edit
                             </button>
                             <?php if ((int)$lecturer['aktif'] === 1): ?>
@@ -784,10 +754,7 @@ require_once __DIR__ . '/../includes/header.php';
                             <label class="form-label" for="editLecturerNidn">NIDN/NIP (opsional)</label>
                             <input class="form-control" id="editLecturerNidn" name="nidn_nip" maxlength="30">
                         </div>
-                        <div>
-                            <label class="form-label" for="editLecturerExpertise">Bidang Keahlian</label>
-                            <input class="form-control" id="editLecturerExpertise" name="bidang_keahlian" maxlength="150" required>
-                        </div>
+                        <div class="small text-muted">Bidang keahlian diisi dan diperbarui sendiri oleh dosen melalui profilnya.</div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
@@ -811,10 +778,7 @@ require_once __DIR__ . '/../includes/header.php';
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                     </div>
                     <div class="modal-body">
-                        <p>Reset sandi untuk <strong id="resetLecturerName"></strong>. Masukkan tanggal lahir dosen untuk membuat sandi awal.</p>
-                        <label class="form-label" for="resetLecturerBirthDate">Tanggal lahir</label>
-                        <input class="form-control" type="date" id="resetLecturerBirthDate" name="tanggal_lahir" required>
-                        <div class="form-text">Sandi awal menjadi DDMMYYYY dan dosen wajib menggantinya saat login.</div>
+                        <p>Reset sandi untuk <strong id="resetLecturerName"></strong> ke <code>123456</code>. Dosen wajib menggantinya saat login berikutnya.</p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
@@ -852,7 +816,6 @@ document.addEventListener('DOMContentLoaded', function () {
         button.addEventListener('click', function () {
             document.getElementById('resetStudentId').value = this.dataset.id;
             document.getElementById('resetStudentName').textContent = this.dataset.nama;
-            document.getElementById('resetStudentBirthDate').value = '';
             resetModal.show();
         });
     });
@@ -863,7 +826,6 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('editLecturerName').value = this.dataset.nama;
             document.getElementById('editLecturerEmail').value = this.dataset.email;
             document.getElementById('editLecturerNidn').value = this.dataset.nidn;
-            document.getElementById('editLecturerExpertise').value = this.dataset.expertise;
             editLecturerModal.show();
         });
     });
@@ -872,7 +834,6 @@ document.addEventListener('DOMContentLoaded', function () {
         button.addEventListener('click', function () {
             document.getElementById('resetLecturerId').value = this.dataset.id;
             document.getElementById('resetLecturerName').textContent = this.dataset.nama;
-            document.getElementById('resetLecturerBirthDate').value = '';
             resetLecturerModal.show();
         });
     });
@@ -890,21 +851,16 @@ document.addEventListener('DOMContentLoaded', function () {
     const manualRoleSelect = document.getElementById('manualAccountRole');
     const studentFields = document.getElementById('manualStudentFields');
     const lecturerIdField = document.getElementById('manualLecturerIdField');
-    const lecturerExpertiseField = document.getElementById('manualLecturerExpertiseField');
-    if (manualRoleSelect && studentFields && lecturerIdField && lecturerExpertiseField) {
+    if (manualRoleSelect && studentFields && lecturerIdField) {
         const studentNpm = document.getElementById('manualAccountNpm');
         const lecturerNidn = document.getElementById('manualAccountNidn');
-        const lecturerExpertise = document.getElementById('manualAccountExpertise');
         const updateManualFields = function () {
             const isLecturer = manualRoleSelect.value === 'dosen';
             studentFields.classList.toggle('d-none', isLecturer);
             lecturerIdField.classList.toggle('d-none', !isLecturer);
-            lecturerExpertiseField.classList.toggle('d-none', !isLecturer);
             studentNpm.disabled = isLecturer;
             studentNpm.required = !isLecturer;
             lecturerNidn.disabled = !isLecturer;
-            lecturerExpertise.disabled = !isLecturer;
-            lecturerExpertise.required = isLecturer;
         };
         manualRoleSelect.addEventListener('change', updateManualFields);
         updateManualFields();

@@ -58,6 +58,7 @@ Skrip SQL membuat database `s_lectura`. Sesuaikan kredensial MySQL dan `BASE_URL
 7. `database/migrations/007_dosen_trpl.sql` (Empat akun dosen contoh D4 Rekayasa Perangkat Lunak)
 8. `database/migrations/009_master_jurusan.sql` (Migrasi satu kali untuk memisahkan master jurusan; jalankan terakhir setelah backup)
 9. `database/migrations/010_akun_mahasiswa_nonaktif.sql` (Status akun aktif/nonaktif tanpa menghapus riwayat)
+10. `database/migrations/011_foto_profil_mahasiswa.sql` (Foto profil mahasiswa)
 
 Jika database lokal sudah memakai fitur janji temu (migrasi 004 sudah diterapkan), jalankan migrasi 005:
 ```cmd
@@ -93,6 +94,7 @@ Jalankan migrasi 011 satu kali untuk menambahkan foto profil mahasiswa pada data
 C:\xampp\mysql\bin\mysql.exe -u root s_lectura < C:\xampp\htdocs\pm-main\database\migrations\011_foto_profil_mahasiswa.sql
 ```
 Mahasiswa dapat melihat nama, email, NPM, dan program studi serta mengubah foto profil melalui menu **Profil Saya**. Identitas akun hanya dapat diubah admin jurusan. Foto menerima format JPG, PNG, atau WEBP dengan ukuran maksimal 2MB.
+Login memberi jeda 15 menit setelah 5 kegagalan untuk kombinasi identitas akun dan alamat sumber, serta setelah 30 kegagalan dari satu alamat sumber dalam 15 menit. Data pembatasan disimpan dalam berkas sementara di direktori temporary server, bukan di database, jadi tidak perlu migrasi. Pembatasan memakai `REMOTE_ADDR` langsung dan tidak mempercayai header proxy yang dikirim pengguna. Di belakang reverse proxy, semua pengguna dapat terlihat berasal dari satu alamat.
 Setiap jadwal kini dimiliki satu dosen dan dibedakan menurut Termin 1/2. Dosen mengelola jadwal miliknya sendiri dan dapat mengunggah Excel. Admin jurusan dapat mengimpor satu file `.xlsx` berisi beberapa dosen, tetapi hanya dosen dan prodi dari jurusannya yang diterima. Unduh template dari menu **Import Jadwal Dosen**; impor hanya menyimpan data jika semua baris valid. Pastikan ekstensi PHP `zip` dan `SimpleXML` aktif.
 
 ### Langkah 3: Buka Aplikasi di Browser
@@ -103,16 +105,16 @@ Akses URL aplikasi:
 
 ## Kredensial Akun Pengujian (Demo) & Aturan Sandi
 
-Seed baru menyediakan akun demo berikut. Sandi dosen dan mahasiswa wajib diganti pada login pertama. Kredensial ini hanya untuk pengujian lokal; jangan gunakan di lingkungan produksi.
+Seed baru menyediakan akun demo berikut. Semua akun demo wajib mengganti sandi pada login pertama. Kredensial ini hanya untuk pengujian lokal; jangan gunakan di lingkungan produksi.
 
 | Peran | Login | Sandi awal |
 |---|---|---|
-| Administrator | `admin@example.test` | `admin123` |
-| Dosen | `dosen1@example.test`-`dosen6@example.test` | `password` |
-| Mahasiswa | `DEMO0001`-`DEMO0034` atau `mahasiswa01@example.test`-`mahasiswa34@example.test` | `password` |
+| Administrator | `admin@example.test` | `123456` |
+| Dosen | `dosen1@example.test`-`dosen6@example.test` | `123456` |
+| Mahasiswa | `DEMO0001`-`DEMO0034` atau `mahasiswa01@example.test`-`mahasiswa34@example.test` | `123456` |
 
 ### Administrator, admin jurusan, dan notifikasi
-Administrator utama hanya mengelola akun **Admin Jurusan** (termasuk cakupan jurusan dan status akun), master jurusan/program studi, serta melihat laporan agregat seluruh kampus. Administrator utama tidak mengelola akun mahasiswa/dosen atau jadwal dosen. Admin jurusan memilih program studi pada halaman **Pilih Prodi & Pengguna** dan dapat menambahkan akun dengan dua cara: mengisi formulir **Tambah Manual** untuk satu akun, atau mengimpor banyak akun sekaligus dari Excel. Untuk impor, pilih jenis data **Mahasiswa** atau **Dosen**, lalu unduh template Excel khusus untuk jenis tersebut (maksimal 500 baris). Template mahasiswa berisi `nama`, `email`, `npm`, `tanggal_lahir`; template dosen berisi `nama`, `email`, `nidn_nip`, `bidang_keahlian`, `tanggal_lahir`. Kedua cara divalidasi sebelum perubahan disimpan. Password awal menggunakan tanggal lahir dengan format `DDMMYYYY` (contoh `07-01-2004` menjadi `07012004`), wajib diganti saat login pertama, dan tanggal lahir tidak disimpan oleh aplikasi. Formatkan NPM/NIDN sebagai teks di Excel untuk menjaga angka nol di depan. Admin jurusan dapat mengedit nama/email mahasiswa, mengedit profil dosen (nama, email, NIDN/NIP, dan bidang keahlian), serta mereset password kedua peran ke tanggal lahir yang dimasukkan saat reset. Akun mahasiswa maupun dosen dapat dinonaktifkan atau diaktifkan kembali. Penonaktifan mencegah login tanpa menghapus profil; riwayat pertemuan tetap tersimpan, dan jadwal dosen juga tetap tersimpan. Laporan admin utama bersifat agregat lintas jurusan; admin jurusan hanya dapat melihat laporan sesuai cakupan jurusannya. Jadwal dan permintaan pertemuan dosen tetap dikelola oleh dosen.
+Administrator utama hanya mengelola akun **Admin Jurusan** (termasuk cakupan jurusan dan status akun), master jurusan/program studi, serta melihat laporan agregat seluruh kampus. Administrator utama tidak mengelola akun mahasiswa/dosen atau jadwal dosen. Admin jurusan memilih program studi pada halaman **Pilih Prodi & Pengguna** dan dapat menambahkan akun dengan dua cara: mengisi formulir **Tambah Manual** untuk satu akun, atau mengimpor banyak akun sekaligus dari Excel. Untuk impor, pilih jenis data **Mahasiswa** atau **Dosen**, lalu unduh template Excel khusus untuk jenis tersebut (maksimal 500 baris). Template mahasiswa berisi `nama`, `email`, `npm`; template dosen berisi `nama`, `email`, `nidn_nip`. Kedua cara divalidasi sebelum perubahan disimpan. Password awal untuk akun baru maupun reset semua peran adalah `123456`, wajib diganti saat login pertama/berikutnya. Formatkan NPM/NIDN sebagai teks di Excel untuk menjaga angka nol di depan. Admin jurusan dapat mengedit nama/email mahasiswa dan data akun dosen (nama, email, NIDN/NIP), serta mereset password kedua peran ke `123456`. Bidang keahlian diisi dan diperbarui sendiri oleh dosen melalui profilnya. Akun mahasiswa maupun dosen dapat dinonaktifkan atau diaktifkan kembali. Penonaktifan mencegah login tanpa menghapus profil; riwayat pertemuan tetap tersimpan, dan jadwal dosen juga tetap tersimpan. Laporan admin utama bersifat agregat lintas jurusan; admin jurusan hanya dapat melihat laporan sesuai cakupan jurusannya. Jadwal dan permintaan pertemuan dosen tetap dikelola oleh dosen.
 
 Pendaftaran mandiri mahasiswa tidak tersedia. Akun mahasiswa dan dosen dibuat oleh admin jurusan, baik dengan formulir manual untuk satu akun maupun impor data massal per program studi. S-LECTURA mendukung konsultasi akademik dan bimbingan umum; layanan Tugas Akhir dikelola di sistem terpisah.
 
@@ -157,7 +159,9 @@ s-lectura/
 │   │   ├── 006_dummy_jadwal_mi_semester_1_3.sql # Contoh jadwal MI semester 1 dan 3
 │   │   ├── 007_dosen_trpl.sql              # Empat akun dosen contoh D4 Rekayasa Perangkat Lunak
 │   │   ├── 008_jadwal_satu_dosen_dan_termin.sql # Migrasi database jadwal lama
-│   │   └── 009_master_jurusan.sql           # Master jurusan dan relasi prodi/admin
+│   │   ├── 009_master_jurusan.sql           # Master jurusan dan relasi prodi/admin
+│   │   ├── 010_akun_mahasiswa_nonaktif.sql  # Status aktif/nonaktif akun
+│   │   └── 011_foto_profil_mahasiswa.sql    # Foto profil mahasiswa
 │   ├── s_lectura.sql                      # Skema DDL lengkap + seed langsung siap pakai
 │   └── gen_hashes.php                      # Membuat hash untuk sandi demo
 ├── docs/

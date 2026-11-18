@@ -41,9 +41,9 @@ if (!empty($token) && verify_csrf_token($token) && !verify_csrf_token('invalid_t
 
 // 4. Uji Verifikasi Password Demo Akun
 $accounts = [
-    ['admin@example.test', 'admin123', 'admin'],
-    ['dosen1@example.test', 'password', 'dosen'],
-    ['DEMO0001', 'password', 'mahasiswa'],
+    ['admin@example.test', '123456', 'admin'],
+    ['dosen1@example.test', '123456', 'dosen'],
+    ['DEMO0001', '123456', 'mahasiswa'],
 ];
 
 foreach ($accounts as $acc) {

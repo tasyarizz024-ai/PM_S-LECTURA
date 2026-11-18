@@ -23,7 +23,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'create') {
         $name = trim($_POST['nama'] ?? '');
         $email = trim($_POST['email'] ?? '');
-        $password = $_POST['password'] ?? '';
         $departmentId = (int)($_POST['id_jurusan'] ?? 0);
 
         if ($name === '' || mb_strlen($name) > 100) {
@@ -31,9 +30,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         if (!filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 100) {
             $errors[] = 'Alamat email tidak valid atau melebihi 100 karakter.';
-        }
-        if (strlen($password) < 6) {
-            $errors[] = 'Kata sandi awal minimal 6 karakter.';
         }
         $stmtDepartment = $pdo->prepare("SELECT id FROM jurusan WHERE id = :id LIMIT 1");
         $stmtDepartment->execute([':id' => $departmentId]);
@@ -56,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmtCreateUser->execute([
                     ':nama' => $name,
                     ':email' => $email,
-                    ':password_hash' => password_hash($password, PASSWORD_BCRYPT),
+                    ':password_hash' => password_hash(initial_user_password(), PASSWORD_DEFAULT),
                 ]);
                 $newUserId = (int)$pdo->lastInsertId();
                 $stmtCreateScope = $pdo->prepare(
@@ -134,22 +130,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
         } elseif ($action === 'reset_password') {
-            $password = $_POST['new_password'] ?? '';
-            if (strlen($password) < 6) {
-                $errors[] = 'Kata sandi baru minimal 6 karakter.';
-            } else {
-                $stmtReset = $pdo->prepare(
-                    "UPDATE users
-                     SET password_hash = :password_hash, must_change_password = 1
-                     WHERE id = :id AND role = 'admin_jurusan'"
-                );
-                $stmtReset->execute([
-                    ':password_hash' => password_hash($password, PASSWORD_BCRYPT),
-                    ':id' => $targetId,
-                ]);
-                set_flash('success', "Kata sandi admin jurusan '{$target['nama']}' berhasil direset.");
-                redirect(BASE_URL . '/admin/users.php');
-            }
+            $stmtReset = $pdo->prepare(
+                "UPDATE users
+                 SET password_hash = :password_hash, must_change_password = 1
+                 WHERE id = :id AND role = 'admin_jurusan'"
+            );
+            $stmtReset->execute([
+                ':password_hash' => password_hash(initial_user_password(), PASSWORD_DEFAULT),
+                ':id' => $targetId,
+            ]);
+            set_flash('success', "Kata sandi admin jurusan '{$target['nama']}' berhasil direset ke 123456.");
+            redirect(BASE_URL . '/admin/users.php');
         } elseif ($action === 'set_active') {
             $active = (int)($_POST['aktif'] ?? 0) === 1 ? 1 : 0;
             if ($targetId === (int)$currentUser['id'] && $active === 0) {
@@ -284,8 +275,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <input class="form-control mb-3" id="createName" name="nama" maxlength="100" required>
                 <label class="form-label" for="createEmail">Email akun</label>
                 <input class="form-control mb-3" id="createEmail" name="email" type="email" maxlength="100" required>
-                <label class="form-label" for="createPassword">Kata sandi awal</label>
-                <input class="form-control mb-3" id="createPassword" name="password" type="password" minlength="6" required>
+                <div class="alert alert-info py-2 small">Kata sandi awal: <code>123456</code>. Admin wajib menggantinya saat login pertama.</div>
                 <label class="form-label" for="createDepartment">Jurusan yang dikelola</label>
                 <select class="form-select" id="createDepartment" name="id_jurusan" required>
                     <option value="">Pilih jurusan</option>
@@ -329,9 +319,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
-                <p>Reset sandi akun <strong id="resetAdminName"></strong>. Admin diwajibkan mengganti sandi saat login berikutnya.</p>
-                <label class="form-label" for="resetAdminPassword">Kata sandi baru</label>
-                <input class="form-control" id="resetAdminPassword" name="new_password" type="password" minlength="6" required>
+                <p>Reset sandi akun <strong id="resetAdminName"></strong> ke <code>123456</code>. Admin diwajibkan mengganti sandi saat login berikutnya.</p>
             </div>
             <div class="modal-footer"><button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Batal</button><button class="btn btn-warning" type="submit">Reset Sandi</button></div>
         </form>
@@ -350,7 +338,6 @@ document.getElementById('resetPasswordModal').addEventListener('show.bs.modal', 
     const button = event.relatedTarget;
     this.querySelector('#resetAdminId').value = button.dataset.id;
     this.querySelector('#resetAdminName').textContent = button.dataset.nama;
-    this.querySelector('#resetAdminPassword').value = '';
 });
 </script>
 

@@ -249,61 +249,60 @@ INSERT INTO `mata_kuliah` (`id`, `kode`, `nama`) VALUES
 
 -- 4. Users (1 Admin + 10 Dosen + 34 Mahasiswa = 45 Akun)
 -- Hash:
--- admin123: $2y$10$82aIXLlST8d/RmgbrdE/Hu6GnXdCKxIFy/xWsSSCbv6DYobFQnA/i
--- Sandi awal demo dosen dan mahasiswa: "password" (wajib diganti saat login pertama).
--- Hash berikut sudah cocok dengan password_verify('password', password_hash).
+-- Sandi awal semua akun demo: "123456" (wajib diganti saat login pertama).
+-- Hash berikut sudah cocok dengan password_verify('123456', password_hash).
 INSERT INTO `users` (`id`, `nama`, `email`, `password_hash`, `role`, `must_change_password`, `npm`) VALUES
 -- 1 Admin
-(1,  'Administrator Demo',                     'admin@example.test',           '$2y$10$82aIXLlST8d/RmgbrdE/Hu6GnXdCKxIFy/xWsSSCbv6DYobFQnA/i', 'admin',     0, NULL),
+(1,  'Administrator Demo',                     'admin@example.test',           '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'admin',     1, NULL),
 -- 6 Dosen
-(2,  'Dosen Demo 1', 'dosen1@example.test',            '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'dosen',     1, NULL),
-(3,  'Dosen Demo 2',             'dosen2@example.test',          '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'dosen',     1, NULL),
-(4,  'Dosen Demo 3',      'dosen3@example.test',            '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'dosen',     1, NULL),
-(5,  'Dosen Demo 4',              'dosen4@example.test',          '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'dosen',     1, NULL),
-(6,  'Dosen Demo 5',              'dosen5@example.test',            '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'dosen',     1, NULL),
-(7,  'Dosen Demo 6',         'dosen6@example.test',       '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'dosen',     1, NULL),
+(2,  'Dosen Demo 1', 'dosen1@example.test',            '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'dosen',     1, NULL),
+(3,  'Dosen Demo 2',             'dosen2@example.test',          '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'dosen',     1, NULL),
+(4,  'Dosen Demo 3',      'dosen3@example.test',            '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'dosen',     1, NULL),
+(5,  'Dosen Demo 4',              'dosen4@example.test',          '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'dosen',     1, NULL),
+(6,  'Dosen Demo 5',              'dosen5@example.test',            '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'dosen',     1, NULL),
+(7,  'Dosen Demo 6',         'dosen6@example.test',       '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'dosen',     1, NULL),
 -- 34 Mahasiswa
-(8,  'Mahasiswa Demo 01',                         'mahasiswa01@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0001'),
-(9,  'Mahasiswa Demo 02',                       'mahasiswa02@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0002'),
-(10, 'Mahasiswa Demo 03',                      'mahasiswa03@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0003'),
-(11, 'Mahasiswa Demo 04',                        'mahasiswa04@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0004'),
-(12, 'Mahasiswa Demo 05',                    'mahasiswa05@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0005'),
-(13, 'Mahasiswa Demo 06',                       'mahasiswa06@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0006'),
-(14, 'Mahasiswa Demo 07',                              'mahasiswa07@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0007'),
-(15, 'Mahasiswa Demo 08',                                'mahasiswa08@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0008'),
-(16, 'Mahasiswa Demo 09',                             'mahasiswa09@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0009'),
-(17, 'Mahasiswa Demo 10',                         'mahasiswa10@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0010'),
-(18, 'Mahasiswa Demo 11',                       'mahasiswa11@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0011'),
-(19, 'Mahasiswa Demo 12',                       'mahasiswa12@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0012'),
-(20, 'Mahasiswa Demo 13',                      'mahasiswa13@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0013'),
-(21, 'Mahasiswa Demo 14',                              'mahasiswa14@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0014'),
-(22, 'Mahasiswa Demo 15',                      'mahasiswa15@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0015'),
-(23, 'Mahasiswa Demo 16',                      'mahasiswa16@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0016'),
-(24, 'Mahasiswa Demo 17',                  'mahasiswa17@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0017'),
-(25, 'Mahasiswa Demo 18',                   'mahasiswa18@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0018'),
-(26, 'Mahasiswa Demo 19',                'mahasiswa19@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0019'),
-(27, 'Mahasiswa Demo 20',                   'mahasiswa20@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0020'),
-(28, 'Mahasiswa Demo 21',                  'mahasiswa21@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0021'),
-(29, 'Mahasiswa Demo 22',                         'mahasiswa22@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0022'),
-(30, 'Mahasiswa Demo 23',                      'mahasiswa23@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0023'),
-(31, 'Mahasiswa Demo 24',                            'mahasiswa24@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0024'),
-(32, 'Mahasiswa Demo 25',                       'mahasiswa25@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0025'),
-(33, 'Mahasiswa Demo 26',                       'mahasiswa26@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0026'),
-(34, 'Mahasiswa Demo 27',                            'mahasiswa27@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0027'),
-(35, 'Mahasiswa Demo 28',                             'mahasiswa28@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0028'),
-(36, 'Mahasiswa Demo 29',                         'mahasiswa29@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0029'),
-(37, 'Mahasiswa Demo 30',                       'mahasiswa30@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0030'),
-(38, 'Mahasiswa Demo 31',                   'mahasiswa31@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0031'),
-(39, 'Mahasiswa Demo 32',                             'mahasiswa32@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0032'),
-(40, 'Mahasiswa Demo 33',                         'mahasiswa33@example.test',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0033'),
+(8,  'Mahasiswa Demo 01',                         'mahasiswa01@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0001'),
+(9,  'Mahasiswa Demo 02',                       'mahasiswa02@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0002'),
+(10, 'Mahasiswa Demo 03',                      'mahasiswa03@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0003'),
+(11, 'Mahasiswa Demo 04',                        'mahasiswa04@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0004'),
+(12, 'Mahasiswa Demo 05',                    'mahasiswa05@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0005'),
+(13, 'Mahasiswa Demo 06',                       'mahasiswa06@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0006'),
+(14, 'Mahasiswa Demo 07',                              'mahasiswa07@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0007'),
+(15, 'Mahasiswa Demo 08',                                'mahasiswa08@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0008'),
+(16, 'Mahasiswa Demo 09',                             'mahasiswa09@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0009'),
+(17, 'Mahasiswa Demo 10',                         'mahasiswa10@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0010'),
+(18, 'Mahasiswa Demo 11',                       'mahasiswa11@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0011'),
+(19, 'Mahasiswa Demo 12',                       'mahasiswa12@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0012'),
+(20, 'Mahasiswa Demo 13',                      'mahasiswa13@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0013'),
+(21, 'Mahasiswa Demo 14',                              'mahasiswa14@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0014'),
+(22, 'Mahasiswa Demo 15',                      'mahasiswa15@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0015'),
+(23, 'Mahasiswa Demo 16',                      'mahasiswa16@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0016'),
+(24, 'Mahasiswa Demo 17',                  'mahasiswa17@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0017'),
+(25, 'Mahasiswa Demo 18',                   'mahasiswa18@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0018'),
+(26, 'Mahasiswa Demo 19',                'mahasiswa19@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0019'),
+(27, 'Mahasiswa Demo 20',                   'mahasiswa20@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0020'),
+(28, 'Mahasiswa Demo 21',                  'mahasiswa21@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0021'),
+(29, 'Mahasiswa Demo 22',                         'mahasiswa22@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0022'),
+(30, 'Mahasiswa Demo 23',                      'mahasiswa23@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0023'),
+(31, 'Mahasiswa Demo 24',                            'mahasiswa24@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0024'),
+(32, 'Mahasiswa Demo 25',                       'mahasiswa25@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0025'),
+(33, 'Mahasiswa Demo 26',                       'mahasiswa26@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0026'),
+(34, 'Mahasiswa Demo 27',                            'mahasiswa27@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0027'),
+(35, 'Mahasiswa Demo 28',                             'mahasiswa28@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0028'),
+(36, 'Mahasiswa Demo 29',                         'mahasiswa29@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0029'),
+(37, 'Mahasiswa Demo 30',                       'mahasiswa30@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0030'),
+(38, 'Mahasiswa Demo 31',                   'mahasiswa31@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0031'),
+(39, 'Mahasiswa Demo 32',                             'mahasiswa32@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0032'),
+(40, 'Mahasiswa Demo 33',                         'mahasiswa33@example.test',   '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0033'),
 -- Seluruh identitas mahasiswa pada seed ini bersifat sintetis.
-(41, 'Mahasiswa Demo 34',                        'mahasiswa34@example.test','$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'mahasiswa', 1, 'DEMO0034');
+(41, 'Mahasiswa Demo 34',                        'mahasiswa34@example.test','$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'mahasiswa', 1, 'DEMO0034');
 -- 4 akun contoh dosen D4 Rekayasa Perangkat Lunak (TRPL)
 INSERT INTO `users` (`id`, `nama`, `email`, `password_hash`, `role`, `must_change_password`, `npm`) VALUES
-(42, 'Dosen TRPL 1', 'trpl1@example.test', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'dosen', 1, NULL),
-(43, 'Dosen TRPL 2', 'trpl2@example.test', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'dosen', 1, NULL),
-(44, 'Dosen TRPL 3', 'trpl3@example.test', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'dosen', 1, NULL),
-(45, 'Dosen TRPL 4', 'trpl4@example.test', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'dosen', 1, NULL);
+(42, 'Dosen TRPL 1', 'trpl1@example.test', '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'dosen', 1, NULL),
+(43, 'Dosen TRPL 2', 'trpl2@example.test', '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'dosen', 1, NULL),
+(44, 'Dosen TRPL 3', 'trpl3@example.test', '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'dosen', 1, NULL),
+(45, 'Dosen TRPL 4', 'trpl4@example.test', '$2y$10$AfDZrKP5VaISdFA0tH6rg..RTToDhnWKpbgsE72opZnqjz2KNiDXy', 'dosen', 1, NULL);
 
 -- 5. Profil Dosen
 INSERT INTO `dosen` (`id`, `user_id`, `nidn_nip`, `id_prodi`, `foto`, `bidang_keahlian`) VALUES

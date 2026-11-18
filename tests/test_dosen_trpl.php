@@ -26,7 +26,7 @@ foreach ($lecturers as $lecturer) {
     if ($lecturer['nama_prodi'] !== 'D4 Rekayasa Perangkat Lunak'
         || $lecturer['bidang_keahlian'] === ''
         || (int)$lecturer['must_change_password'] !== 1
-        || !password_verify('password', $lecturer['password_hash'])) {
+        || !password_verify('123456', $lecturer['password_hash'])) {
         fwrite(STDERR, "[FAIL] Profil atau kredensial {$lecturer['email']} tidak sesuai.\n");
         exit(1);
     }

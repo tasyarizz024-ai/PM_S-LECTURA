@@ -8,6 +8,11 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/helpers.php';
 
+// Batas waktu sesi tidak aktif (idle timeout): 30 menit (1800 detik)
+if (!defined('SESSION_IDLE_TIMEOUT')) {
+    define('SESSION_IDLE_TIMEOUT', 1800);
+}
+
 start_session_if_none();
 
 /**
@@ -47,6 +52,15 @@ function require_login(): void {
         set_flash('warning', 'Silakan masuk terlebih dahulu untuk mengakses halaman tersebut.');
         redirect(BASE_URL . '/login.php');
     }
+
+    // Pengecekan batas waktu sesi tidak aktif (Idle Timeout 30 menit)
+    if (isset($_SESSION['last_activity']) && (time() - (int)$_SESSION['last_activity']) > SESSION_IDLE_TIMEOUT) {
+        logout_user();
+        set_flash('warning', 'Sesi Anda telah berakhir karena tidak ada aktivitas selama 30 menit. Silakan masuk kembali.');
+        redirect(BASE_URL . '/login.php');
+    }
+    $_SESSION['last_activity'] = time();
+
     $pdo = get_db_connection();
     $stmt = $pdo->prepare("SELECT aktif FROM users WHERE id = :id LIMIT 1");
     $stmt->execute([':id' => (int)$_SESSION['user_id']]);
@@ -100,6 +114,7 @@ function login_user(array $user): void {
     $_SESSION['user_role']            = $user['role'];
     $_SESSION['user_npm']             = $user['npm'] ?? null;
     $_SESSION['must_change_password'] = (int)($user['must_change_password'] ?? 0);
+    $_SESSION['last_activity']        = time();
 
     // Jika pengguna adalah dosen, ambil id_dosen untuk mempermudah akses
     if ($user['role'] === 'dosen') {

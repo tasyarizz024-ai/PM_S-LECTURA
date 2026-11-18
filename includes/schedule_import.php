@@ -2,13 +2,23 @@
 
 require_once __DIR__ . '/schedule_xlsx.php';
 
-function validate_schedule_import(PDO $pdo, array $rows, ?int $dosenScope, ?int $jurusanScope): array
+function validate_schedule_import(PDO $pdo, array $rows, ?int $dosenScope, ?int $jurusanScope, ?int $prodiScope = null): array
 {
     $errors = [];
     $validRows = [];
     $pendingSchedules = [];
     $courseNamesByCode = [];
     $weekdays = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+
+    $scopedProgram = null;
+    if ($prodiScope !== null) {
+        $stmtScopeProg = $pdo->prepare('SELECT id, id_jurusan, nama_prodi FROM program_studi WHERE id = :id');
+        $stmtScopeProg->execute([':id' => $prodiScope]);
+        $scopedProgram = $stmtScopeProg->fetch();
+        if (!$scopedProgram || ($jurusanScope !== null && (int)$scopedProgram['id_jurusan'] !== $jurusanScope)) {
+            return ['errors' => ['Program studi yang dipilih tidak valid atau di luar cakupan jurusan.'], 'rows' => []];
+        }
+    }
 
     foreach ($rows as $row) {
         $rowNumber = (int)($row['_row_number'] ?? 0);
@@ -46,7 +56,7 @@ function validate_schedule_import(PDO $pdo, array $rows, ?int $dosenScope, ?int 
         if ($className === '' || strlen($className) > 100) {
             $rowErrors[] = 'nama kelas wajib diisi (maksimal 100 karakter)';
         }
-        if ($programName === '') {
+        if ($scopedProgram === null && $programName === '') {
             $rowErrors[] = 'program studi wajib diisi';
         }
         if (!ctype_digit($semester) || (int)$semester < 1 || (int)$semester > 8) {
@@ -98,20 +108,24 @@ function validate_schedule_import(PDO $pdo, array $rows, ?int $dosenScope, ?int 
                 $rowErrors[] = 'dosen berada di luar cakupan jurusan admin';
             }
 
-            $sqlProgram = "SELECT id, id_jurusan FROM program_studi WHERE LOWER(nama_prodi) = LOWER(:nama)";
-            $programParams = [':nama' => $programName];
-            if ($jurusanScope !== null) {
-                $sqlProgram .= " AND id_jurusan = :jurusan";
-                $programParams[':jurusan'] = $jurusanScope;
-            }
-            $sqlProgram .= ' LIMIT 1';
-            $stmtProgram = $pdo->prepare($sqlProgram);
-            $stmtProgram->execute($programParams);
-            $program = $stmtProgram->fetch();
-            if (!$program) {
-                $rowErrors[] = $jurusanScope === null
-                    ? 'program studi tidak ditemukan'
-                    : 'program studi tidak ditemukan dalam jurusan admin';
+            if ($scopedProgram !== null) {
+                $program = $scopedProgram;
+            } else {
+                $sqlProgram = "SELECT id, id_jurusan FROM program_studi WHERE LOWER(nama_prodi) = LOWER(:nama)";
+                $programParams = [':nama' => $programName];
+                if ($jurusanScope !== null) {
+                    $sqlProgram .= " AND id_jurusan = :jurusan";
+                    $programParams[':jurusan'] = $jurusanScope;
+                }
+                $sqlProgram .= ' LIMIT 1';
+                $stmtProgram = $pdo->prepare($sqlProgram);
+                $stmtProgram->execute($programParams);
+                $program = $stmtProgram->fetch();
+                if (!$program) {
+                    $rowErrors[] = $jurusanScope === null
+                        ? 'program studi tidak ditemukan'
+                        : 'program studi tidak ditemukan dalam jurusan admin';
+                }
             }
 
             $stmtCourse = $pdo->prepare("SELECT nama FROM mata_kuliah WHERE kode = :kode LIMIT 1");

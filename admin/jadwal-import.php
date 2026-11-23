@@ -173,10 +173,6 @@ require_once __DIR__ . '/../includes/header.php';
                     <a class="btn btn-outline-secondary" href="<?= BASE_URL ?>/admin/mahasiswa.php">Kembali</a>
                 </div>
             </form>
-            <hr>
-            <p class="small text-muted mb-0">
-                Kolom template mencakup: <code>email_dosen</code>, <code>kode_mk</code>, <code>nama_mk</code>, <code>nama_kelas</code>, <code>semester</code>, <code>tahun_ajaran</code>, <code>termin</code> (1/2), <code>hari</code> (Senin–Jumat), <code>jam_mulai</code> & <code>jam_selesai</code> (<code>HH:MM</code>), <code>tipe_sesi</code> (<code>teori</code>/<code>praktik</code>), <code>sks</code>, <code>mode</code> (<code>daring</code>/<code>luring</code>), dan <code>ruang</code>.
-            </p>
         </div>
     </div>
 <?php else: ?>

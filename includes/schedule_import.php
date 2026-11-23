@@ -2,12 +2,63 @@
 
 require_once __DIR__ . '/schedule_xlsx.php';
 
+function resolve_course_code(PDO $pdo, string $courseName, array &$cacheByLowerName): string
+{
+    $lowerName = mb_strtolower(trim($courseName));
+    if (isset($cacheByLowerName[$lowerName])) {
+        return $cacheByLowerName[$lowerName];
+    }
+
+    $stmt = $pdo->prepare("SELECT kode FROM mata_kuliah WHERE LOWER(nama) = LOWER(:nama) LIMIT 1");
+    $stmt->execute([':nama' => $courseName]);
+    $existingCode = $stmt->fetchColumn();
+    if ($existingCode !== false && $existingCode !== '') {
+        $cacheByLowerName[$lowerName] = (string)$existingCode;
+        return (string)$existingCode;
+    }
+
+    $words = preg_split('/[\s\-_]+/', trim($courseName));
+    $acronym = '';
+    foreach ($words as $w) {
+        if ($w !== '') {
+            $acronym .= mb_substr($w, 0, 1);
+        }
+    }
+    $base = strtoupper((string)preg_replace('/[^A-Za-z0-9]/', '', (string)$acronym));
+    if (strlen($base) < 2) {
+        $clean = strtoupper((string)preg_replace('/[^A-Za-z0-9]/', '', $courseName));
+        $base = substr($clean, 0, 6);
+    }
+    if ($base === '') {
+        $base = 'MK';
+    }
+    $base = 'MK' . substr($base, 0, 8);
+
+    $candidate = $base;
+    $suffix = 1;
+    $stmtCheck = $pdo->prepare("SELECT COUNT(*) FROM mata_kuliah WHERE kode = :kode");
+    while (true) {
+        $stmtCheck->execute([':kode' => $candidate]);
+        $dbCount = (int)$stmtCheck->fetchColumn();
+        $inBatchConflict = in_array($candidate, $cacheByLowerName, true);
+        if ($dbCount === 0 && !$inBatchConflict) {
+            break;
+        }
+        $suffix++;
+        $candidate = substr($base, 0, 14) . $suffix;
+    }
+
+    $cacheByLowerName[$lowerName] = $candidate;
+    return $candidate;
+}
+
 function validate_schedule_import(PDO $pdo, array $rows, ?int $dosenScope, ?int $jurusanScope, ?int $prodiScope = null): array
 {
     $errors = [];
     $validRows = [];
     $pendingSchedules = [];
     $courseNamesByCode = [];
+    $autoCourseCodes = [];
     $weekdays = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
 
     $scopedProgram = null;
@@ -44,14 +95,19 @@ function validate_schedule_import(PDO $pdo, array $rows, ?int $dosenScope, ?int 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $rowErrors[] = 'email dosen tidak valid';
         }
-        if ($code === '' || strlen($code) > 20 || $courseName === '' || strlen($courseName) > 150) {
-            $rowErrors[] = 'kode dan nama mata kuliah wajib diisi (maksimal 20 dan 150 karakter)';
+        if ($courseName === '' || strlen($courseName) > 150) {
+            $rowErrors[] = 'nama mata kuliah wajib diisi (maksimal 150 karakter)';
         }
-        if (isset($courseNamesByCode[$courseKey])
-            && mb_strtolower($courseNamesByCode[$courseKey]) !== mb_strtolower($courseName)) {
-            $rowErrors[] = 'kode mata kuliah yang sama memiliki nama berbeda pada file';
-        } elseif ($code !== '' && $courseName !== '') {
-            $courseNamesByCode[$courseKey] = $courseName;
+        if ($code !== '' && strlen($code) > 20) {
+            $rowErrors[] = 'kode mata kuliah maksimal 20 karakter';
+        }
+        if ($code !== '') {
+            if (isset($courseNamesByCode[$courseKey])
+                && mb_strtolower($courseNamesByCode[$courseKey]) !== mb_strtolower($courseName)) {
+                $rowErrors[] = 'kode mata kuliah yang sama memiliki nama berbeda pada file';
+            } elseif ($courseName !== '') {
+                $courseNamesByCode[$courseKey] = $courseName;
+            }
         }
         if ($className === '' || strlen($className) > 100) {
             $rowErrors[] = 'nama kelas wajib diisi (maksimal 100 karakter)';
@@ -65,7 +121,9 @@ function validate_schedule_import(PDO $pdo, array $rows, ?int $dosenScope, ?int 
         if ($academicYear === '' || strlen($academicYear) > 30) {
             $rowErrors[] = 'tahun ajaran wajib diisi (maksimal 30 karakter)';
         }
-        if (!in_array($term, ['1', '2'], true)) {
+        if ($term === '') {
+            $term = '1';
+        } elseif (!in_array($term, ['1', '2'], true)) {
             $rowErrors[] = 'termin harus 1 atau 2';
         }
         if (!in_array($day, $weekdays, true)) {
@@ -79,7 +137,9 @@ function validate_schedule_import(PDO $pdo, array $rows, ?int $dosenScope, ?int 
         if (!in_array($sessionType, ['teori', 'praktik'], true)) {
             $rowErrors[] = 'tipe sesi harus teori atau praktik';
         }
-        if (!ctype_digit($credits) || (int)$credits < 1 || (int)$credits > 6) {
+        if ($credits === '') {
+            $credits = '2';
+        } elseif (!ctype_digit($credits) || (int)$credits < 1 || (int)$credits > 6) {
             $rowErrors[] = 'SKS harus berupa angka 1 sampai 6';
         }
         if (!in_array($mode, ['daring', 'luring'], true)) {
@@ -90,6 +150,10 @@ function validate_schedule_import(PDO $pdo, array $rows, ?int $dosenScope, ?int 
         }
 
         if (!$rowErrors) {
+            if ($code === '' && $courseName !== '') {
+                $code = resolve_course_code($pdo, $courseName, $autoCourseCodes);
+            }
+
             $stmtLecturer = $pdo->prepare(
                 "SELECT d.id, u.id AS user_id, p.id_jurusan
                  FROM dosen d
@@ -128,11 +192,13 @@ function validate_schedule_import(PDO $pdo, array $rows, ?int $dosenScope, ?int 
                 }
             }
 
-            $stmtCourse = $pdo->prepare("SELECT nama FROM mata_kuliah WHERE kode = :kode LIMIT 1");
-            $stmtCourse->execute([':kode' => $code]);
-            $existingCourseName = $stmtCourse->fetchColumn();
-            if ($existingCourseName !== false && mb_strtolower($existingCourseName) !== mb_strtolower($courseName)) {
-                $rowErrors[] = 'nama mata kuliah tidak cocok dengan kode yang sudah terdaftar';
+            if ($code !== '') {
+                $stmtCourse = $pdo->prepare("SELECT nama FROM mata_kuliah WHERE kode = :kode LIMIT 1");
+                $stmtCourse->execute([':kode' => $code]);
+                $existingCourseName = $stmtCourse->fetchColumn();
+                if ($existingCourseName !== false && mb_strtolower($existingCourseName) !== mb_strtolower($courseName)) {
+                    $rowErrors[] = 'nama mata kuliah tidak cocok dengan kode yang sudah terdaftar';
+                }
             }
         }
 

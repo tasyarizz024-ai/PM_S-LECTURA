@@ -82,7 +82,7 @@ require_once __DIR__ . '/../includes/header.php';
 <div class="card card-custom border-0 shadow-sm mb-4">
     <div class="card-body">
         <h5 class="fw-bold">Format file</h5>
-        <p>Gunakan template dan isi satu baris untuk setiap jadwal. Template berisi kolom dosen, mata kuliah, kelas, prodi, semester, tahun ajaran, termin (1/2), hari, jam, tipe sesi, SKS, mode, dan ruang.</p>
+        <p>Gunakan template dan isi satu baris untuk setiap jadwal. Template berisi kolom dosen, mata kuliah, kelas, prodi, semester, tahun ajaran, hari, jam, tipe sesi, mode, dan ruang.</p>
         <a class="btn btn-outline-success mb-3" href="<?= BASE_URL ?>/dosen/jadwal-import.php?template=1">
             <i class="bi bi-download me-1"></i>Unduh Template Excel
         </a>
@@ -99,7 +99,7 @@ require_once __DIR__ . '/../includes/header.php';
 <div class="card card-custom border-0 shadow-sm">
     <div class="card-body">
         <h6 class="fw-bold">Nilai kolom</h6>
-        <p class="small mb-0">Hari: Senin–Jumat; termin: 1 atau 2; tipe sesi: <code>teori</code>/<code>praktik</code>; mode: <code>daring</code>/<code>luring</code>; format jam: <code>HH:MM</code>. Dosen harus diisi dengan email akun Anda.</p>
+        <p class="small mb-0">Hari: Senin–Jumat; tipe sesi: <code>teori</code>/<code>praktik</code>; mode: <code>daring</code>/<code>luring</code>; format jam: <code>HH:MM</code>. Dosen harus diisi dengan email akun Anda.</p>
     </div>
 </div>
 

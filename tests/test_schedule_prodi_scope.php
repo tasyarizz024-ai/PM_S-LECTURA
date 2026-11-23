@@ -25,19 +25,20 @@ if ($prodiId <= 0) {
     exit(1);
 }
 
-echo "[INFO] Testing 14-column schedule import (tanpa kolom prodi, dengan prodiScope)...\n";
+echo "[INFO] Testing 11-column schedule import (tanpa kolom prodi, kode_mk, termin, sks, dengan prodiScope)...\n";
 
 // 1. Template headers tanpa prodi
 $headersNoProdi = schedule_xlsx_headers(false);
-if (in_array('prodi', $headersNoProdi, true)) {
-    fwrite(STDERR, "[FAIL] Kolom prodi masih ada pada headers(false).\n");
+if (in_array('prodi', $headersNoProdi, true) || in_array('kode_mk', $headersNoProdi, true)
+    || in_array('termin', $headersNoProdi, true) || in_array('sks', $headersNoProdi, true)) {
+    fwrite(STDERR, "[FAIL] Kolom prodi, kode_mk, termin, atau sks masih ada pada headers(false).\n");
     exit(1);
 }
-if (count($headersNoProdi) !== 14) {
-    fwrite(STDERR, "[FAIL] Jumlah kolom headers(false) harus 14, didapat: " . count($headersNoProdi) . "\n");
+if (count($headersNoProdi) !== 11) {
+    fwrite(STDERR, "[FAIL] Jumlah kolom headers(false) harus 11, didapat: " . count($headersNoProdi) . "\n");
     exit(1);
 }
-echo "[PASS] 1. Headers tanpa prodi tepat 14 kolom.\n";
+echo "[PASS] 1. Headers tanpa prodi tepat 11 kolom.\n";
 
 // 2. Buat user dosen dummy sementara untuk validasi jika perlu
 $dummyDosenEmail = 'test.dosen.jadwal@polinela.ac.id';
@@ -55,22 +56,18 @@ if ($userId <= 0) {
     $dosenId = (int)$pdo->query("SELECT id FROM dosen WHERE user_id = {$userId}")->fetchColumn();
 }
 
-// 3. Baris jadwal tanpa kolom prodi
+// 3. Baris jadwal tanpa kolom prodi, kode_mk, termin, sks
 $rowNoProdi = [
     '_row_number' => 2,
     'email_dosen' => $dummyDosenEmail,
-    'kode_mk' => 'PMI999',
-    'nama_mk' => 'Uji Coba Sistem',
+    'nama_mk' => 'Uji Coba Sistem Baru',
     'nama_kelas' => 'MI Uji 1',
-    // Perhatikan: TIDAK ADA KEY 'prodi'
     'semester' => '2',
     'tahun_ajaran' => '2026/2027 Ganjil',
-    'termin' => '1',
     'hari' => 'Kamis',
     'jam_mulai' => '13:00',
     'jam_selesai' => '15:00',
     'tipe_sesi' => 'teori',
-    'sks' => '2',
     'mode' => 'luring',
     'ruang' => 'Lab 1',
 ];
@@ -101,5 +98,5 @@ if ($outsideJurusanProdi > 0) {
 $pdo->exec("DELETE FROM dosen WHERE id = {$dosenId}");
 $pdo->exec("DELETE FROM users WHERE id = {$userId}");
 
-echo "\n[ALL TESTS PASSED] Fitur pilihan prodi dan template 14 kolom jadwal sukses diverifikasi!\n";
+echo "\n[ALL TESTS PASSED] Fitur pilihan prodi dan template 11 kolom jadwal sukses diverifikasi!\n";
 

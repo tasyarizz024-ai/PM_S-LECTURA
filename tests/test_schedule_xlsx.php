@@ -21,15 +21,14 @@ try {
         . '<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="1" uniqueCount="1">'
         . '<si><t>dosen1@example.test</t></si></sst>';
     $row = '<row r="2"><c r="A2" t="s"><v>0</v></c>'
-        . '<c r="B2" t="inlineStr"><is><t>TEST001</t></is></c>'
-        . '<c r="C2" t="inlineStr"><is><t>Uji</t></is></c>'
-        . '<c r="D2" t="inlineStr"><is><t>Kelas Uji</t></is></c>'
-        . '<c r="E2" t="inlineStr"><is><t>Manajemen Informatika</t></is></c>'
-        . '<c r="F2"><v>1</v></c><c r="G2" t="inlineStr"><is><t>2026/2027</t></is></c>'
-        . '<c r="H2"><v>1</v></c><c r="I2" t="inlineStr"><is><t>Senin</t></is></c>'
-        . '<c r="J2"><v>0.3541666667</v></c><c r="K2"><v>0.3958333333</v></c>'
-        . '<c r="L2" t="inlineStr"><is><t>teori</t></is></c><c r="M2"><v>2</v></c>'
-        . '<c r="N2" t="inlineStr"><is><t>daring</t></is></c></row>';
+        . '<c r="B2" t="inlineStr"><is><t>Uji</t></is></c>'
+        . '<c r="C2" t="inlineStr"><is><t>Kelas Uji</t></is></c>'
+        . '<c r="D2" t="inlineStr"><is><t>Manajemen Informatika</t></is></c>'
+        . '<c r="E2"><v>1</v></c><c r="F2" t="inlineStr"><is><t>2026/2027</t></is></c>'
+        . '<c r="G2" t="inlineStr"><is><t>Senin</t></is></c>'
+        . '<c r="H2"><v>0.3541666667</v></c><c r="I2"><v>0.3958333333</v></c>'
+        . '<c r="J2" t="inlineStr"><is><t>teori</t></is></c>'
+        . '<c r="K2" t="inlineStr"><is><t>daring</t></is></c></row>';
     if ($sheet === false || !$zip->addFromString('xl/sharedStrings.xml', $sharedStrings)
         || !$zip->addFromString('xl/worksheets/sheet1.xml', str_replace('</sheetData>', $row . '</sheetData>', $sheet))) {
         throw new RuntimeException('Could not add XLSX test data.');

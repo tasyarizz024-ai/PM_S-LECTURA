@@ -5,17 +5,14 @@ function schedule_xlsx_headers(bool $includeProdi = true): array
     if (!$includeProdi) {
         return [
             'email_dosen',
-            'kode_mk',
             'nama_mk',
             'nama_kelas',
             'semester',
             'tahun_ajaran',
-            'termin',
             'hari',
             'jam_mulai',
             'jam_selesai',
             'tipe_sesi',
-            'sks',
             'mode',
             'ruang',
         ];
@@ -23,18 +20,15 @@ function schedule_xlsx_headers(bool $includeProdi = true): array
 
     return [
         'email_dosen',
-        'kode_mk',
         'nama_mk',
         'nama_kelas',
         'prodi',
         'semester',
         'tahun_ajaran',
-        'termin',
         'hari',
         'jam_mulai',
         'jam_selesai',
         'tipe_sesi',
-        'sks',
         'mode',
         'ruang',
     ];

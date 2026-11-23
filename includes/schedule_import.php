@@ -273,64 +273,7 @@ function validate_schedule_import(PDO $pdo, array $rows, ?int $dosenScope, ?int 
         }
 
         if (!$rowErrors && $lecturer && $program) {
-            $conflict = check_time_collision(
-                $pdo,
-                (int)$lecturer['id'],
-                $day,
-                $start,
-                $end,
-                null,
-                null,
-                $term
-            );
-            if ($conflict !== null) {
-                $rowErrors[] = $conflict;
-            }
-
-            $stmtClass = $pdo->prepare(
-                "SELECT id FROM kelas
-                 WHERE nama_kelas = :nama AND id_prodi = :prodi AND semester = :semester AND tahun_ajaran = :tahun
-                 LIMIT 1"
-            );
-            $stmtClass->execute([
-                ':nama' => $className,
-                ':prodi' => $program['id'],
-                ':semester' => (int)$semester,
-                ':tahun' => $academicYear,
-            ]);
-            $existingClassId = (int)$stmtClass->fetchColumn();
-            if ($existingClassId > 0) {
-                $classConflict = check_class_schedule_collision(
-                    $pdo,
-                    $existingClassId,
-                    $day,
-                    $start,
-                    $end,
-                    $term
-                );
-                if ($classConflict !== null) {
-                    $rowErrors[] = $classConflict;
-                }
-            }
-
-            foreach ($pendingSchedules as $pending) {
-                $sameTimeScope = $pending['termin'] === $term
-                    && $pending['hari'] === $day
-                    && $start < $pending['jam_selesai']
-                    && $end > $pending['jam_mulai'];
-                if ($sameTimeScope && $pending['id_dosen'] === (int)$lecturer['id']) {
-                    $rowErrors[] = 'waktu bentrok dengan dosen yang sama pada baris ' . $pending['row_number'] . ' pada file ini';
-                    break;
-                }
-                if ($sameTimeScope
-                    && $pending['id_prodi'] === (int)$program['id']
-                    && mb_strtolower($pending['nama_kelas']) === mb_strtolower($className)
-                    && $pending['semester'] === (int)$semester
-                    && mb_strtolower($pending['tahun_ajaran']) === mb_strtolower($academicYear)) {
-                    $rowErrors[] = 'jadwal kelas bertabrakan dengan baris ' . $pending['row_number'] . ' pada file ini';
-                    break;
-                }
-            }
+            // Pemeriksaan bentrok waktu dihapus agar jadwal paralel/daring atau kelas gabungan dapat diimpor tanpa halangan
         }
 
         if ($rowErrors) {

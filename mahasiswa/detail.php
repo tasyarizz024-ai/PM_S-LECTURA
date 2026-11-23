@@ -497,20 +497,26 @@ require_once __DIR__ . '/../includes/header.php';
                 const endInput = document.getElementById('jam_selesai');
                 const alasanWrapper = document.getElementById('alasan-wrapper');
                 const alasanInput = document.getElementById('alasan');
-                const hariToDay = {
+                // Peta hari Indonesia ke nilai getDay() JS (0=Minggu, 1=Senin, ..., 5=Jumat, 6=Sabtu)
+                const hariToJsDay = {
                     'Senin': 1, 'Selasa': 2, 'Rabu': 3, 'Kamis': 4, 'Jumat': 5
                 };
                 const tanggalInput = document.getElementById('tanggal');
 
                 function getNextWeekday(hariName) {
-                    const target = hariToDay[hariName];
-                    if (!target) return '';
-                    const today = new Date();
-                    // Mulai dari besok agar tidak memilih hari ini yang sudah lewat
-                    const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+                    const target = hariToJsDay[hariName];
+                    if (target === undefined) return '';
+                    // Mulai dari besok (min date = tomorrow)
+                    const d = new Date();
+                    d.setDate(d.getDate() + 1);
+                    d.setHours(0, 0, 0, 0);
                     for (let i = 0; i < 7; i++) {
-                        if (d.getDay() === target % 7 || (target === 7 && d.getDay() === 0)) {
-                            return d.toISOString().split('T')[0];
+                        if (d.getDay() === target) {
+                            // Format YYYY-MM-DD yang diterima input[type=date]
+                            const yyyy = d.getFullYear();
+                            const mm = String(d.getMonth() + 1).padStart(2, '0');
+                            const dd = String(d.getDate()).padStart(2, '0');
+                            return yyyy + '-' + mm + '-' + dd;
                         }
                         d.setDate(d.getDate() + 1);
                     }

@@ -458,7 +458,7 @@ require_once __DIR__ . '/../includes/header.php';
                     <select class="form-select" id="id_slot" name="id_slot">
                         <option value="">Pilih slot</option>
                         <?php foreach ($slotPertemuanList as $slot): ?>
-                            <option value="<?= (int)$slot['id'] ?>" data-slot-type="<?= e($slot['jenis']) ?>">
+                            <option value="<?= (int)$slot['id'] ?>" data-slot-type="<?= e($slot['jenis']) ?>" data-hari="<?= e($slot['hari']) ?>">
                                 <?= e(ucfirst($slot['jenis'])) ?> — <?= e($slot['hari']) ?>, <?= e(substr($slot['jam_mulai'], 0, 5)) ?>–<?= e(substr($slot['jam_selesai'], 0, 5)) ?>
                             </option>
                         <?php endforeach; ?>
@@ -497,6 +497,37 @@ require_once __DIR__ . '/../includes/header.php';
                 const endInput = document.getElementById('jam_selesai');
                 const alasanWrapper = document.getElementById('alasan-wrapper');
                 const alasanInput = document.getElementById('alasan');
+                const hariToDay = {
+                    'Senin': 1, 'Selasa': 2, 'Rabu': 3, 'Kamis': 4, 'Jumat': 5
+                };
+                const tanggalInput = document.getElementById('tanggal');
+
+                function getNextWeekday(hariName) {
+                    const target = hariToDay[hariName];
+                    if (!target) return '';
+                    const today = new Date();
+                    // Mulai dari besok agar tidak memilih hari ini yang sudah lewat
+                    const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+                    for (let i = 0; i < 7; i++) {
+                        if (d.getDay() === target % 7 || (target === 7 && d.getDay() === 0)) {
+                            return d.toISOString().split('T')[0];
+                        }
+                        d.setDate(d.getDate() + 1);
+                    }
+                    return '';
+                }
+
+                function autoFillTanggalFromSlot() {
+                    const selected = slotSelect.options[slotSelect.selectedIndex];
+                    if (!selected || !selected.value) return;
+                    const hari = selected.dataset.hari;
+                    if (!hari) return;
+                    const nextDate = getNextWeekday(hari);
+                    if (nextDate) {
+                        tanggalInput.value = nextDate;
+                    }
+                }
+
                 function filterMeetingSlots() {
                     const requiredType = jenisSelect.value === 'bimbingan' ? 'bimbingan' : 'konsultasi';
                     for (const option of slotSelect.options) {
@@ -518,9 +549,14 @@ require_once __DIR__ . '/../includes/header.php';
                     alasanWrapper.hidden = isPrivate;
                     alasanInput.required = !isPrivate;
                     if (isPrivate) alasanInput.value = '';
+                    // Jika mode slot aktif dan ada slot yang dipilih, auto-isi tanggal
+                    if (useSlot && slotSelect.value) {
+                        autoFillTanggalFromSlot();
+                    }
                 }
                 jenisSelect.addEventListener('change', filterMeetingSlots);
                 requestMode.addEventListener('change', filterMeetingSlots);
+                slotSelect.addEventListener('change', autoFillTanggalFromSlot);
                 filterMeetingSlots();
             </script>
     </div>

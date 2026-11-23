@@ -9,16 +9,18 @@ require_role('dosen');
 
 $pdo = get_db_connection();
 $user = current_user();
-$stmtLecturer = $pdo->prepare("SELECT id FROM dosen WHERE user_id = :user_id LIMIT 1");
+$stmtLecturer = $pdo->prepare("SELECT id, id_prodi FROM dosen WHERE user_id = :user_id LIMIT 1");
 $stmtLecturer->execute([':user_id' => $user['id']]);
-$idDosen = (int)$stmtLecturer->fetchColumn();
+$lecturerData = $stmtLecturer->fetch();
+$idDosen = (int)($lecturerData['id'] ?? 0);
+$idProdiDosen = (int)($lecturerData['id_prodi'] ?? 0);
 if ($idDosen <= 0) {
     set_flash('danger', 'Profil dosen tidak ditemukan. Hubungi administrator.');
     redirect(BASE_URL . '/dosen/index.php');
 }
 
 if (isset($_GET['template'])) {
-    $template = schedule_xlsx_template();
+    $template = schedule_xlsx_template(schedule_xlsx_headers(false));
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     header('Content-Disposition: attachment; filename="template-jadwal-dosen.xlsx"');
     header('Content-Length: ' . strlen($template));
@@ -38,8 +40,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Gunakan file Excel .xlsx.';
     } else {
         try {
-            $rows = schedule_xlsx_read($_FILES['file_excel']['tmp_name']);
-            $result = validate_schedule_import($pdo, $rows, $idDosen, null);
+            $rows = schedule_xlsx_read($_FILES['file_excel']['tmp_name'], schedule_xlsx_headers(false));
+            $result = validate_schedule_import($pdo, $rows, $idDosen, null, $idProdiDosen);
             $errors = $result['errors'];
             if (!$errors) {
                 $pdo->beginTransaction();
@@ -82,7 +84,7 @@ require_once __DIR__ . '/../includes/header.php';
 <div class="card card-custom border-0 shadow-sm mb-4">
     <div class="card-body">
         <h5 class="fw-bold">Format file</h5>
-        <p>Gunakan template dan isi satu baris untuk setiap jadwal. Template berisi kolom dosen, mata kuliah, kelas, prodi, semester, tahun ajaran, hari, jam, tipe sesi, mode, dan ruang.</p>
+        <p>Gunakan template dan isi satu baris untuk setiap jadwal. Template berisi kolom nama dosen, mata kuliah, kelas, semester, tahun ajaran, hari, jam, tipe sesi, mode, dan ruang.</p>
         <a class="btn btn-outline-success mb-3" href="<?= BASE_URL ?>/dosen/jadwal-import.php?template=1">
             <i class="bi bi-download me-1"></i>Unduh Template Excel
         </a>
@@ -99,7 +101,7 @@ require_once __DIR__ . '/../includes/header.php';
 <div class="card card-custom border-0 shadow-sm">
     <div class="card-body">
         <h6 class="fw-bold">Nilai kolom</h6>
-        <p class="small mb-0">Hari: Senin–Jumat; tipe sesi: <code>teori</code>/<code>praktik</code>; mode: <code>daring</code>/<code>luring</code>; format jam: <code>HH:MM</code>. Dosen harus diisi dengan email akun Anda.</p>
+        <p class="small mb-0">Hari: Senin–Jumat; tipe sesi: <code>teori</code>/<code>praktik</code>; mode: <code>daring</code>/<code>luring</code>; format jam: <code>HH:MM</code>.</p>
     </div>
 </div>
 

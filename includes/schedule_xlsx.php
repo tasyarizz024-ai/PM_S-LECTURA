@@ -4,7 +4,7 @@ function schedule_xlsx_headers(bool $includeProdi = true): array
 {
     if (!$includeProdi) {
         return [
-            'email_dosen',
+            'nama_dosen',
             'nama_mk',
             'nama_kelas',
             'semester',
@@ -19,7 +19,7 @@ function schedule_xlsx_headers(bool $includeProdi = true): array
     }
 
     return [
-        'email_dosen',
+        'nama_dosen',
         'nama_mk',
         'nama_kelas',
         'prodi',
@@ -146,14 +146,32 @@ function schedule_xlsx_read(string $path, ?array $expectedHeaders = null): array
     }
 
     $header = array_values($rows[0]);
-    if ($header !== $expectedHeaders) {
+    $matchedHeaders = null;
+    $possibleHeaderSets = [$expectedHeaders];
+
+    // Toleransi: kolom pertama bisa nama_dosen atau email_dosen
+    if (isset($expectedHeaders[0]) && in_array($expectedHeaders[0], ['nama_dosen', 'email_dosen'], true)) {
+        $altFirst = $expectedHeaders[0] === 'nama_dosen' ? 'email_dosen' : 'nama_dosen';
+        $altHeaders = $expectedHeaders;
+        $altHeaders[0] = $altFirst;
+        $possibleHeaderSets[] = $altHeaders;
+    }
+
+    foreach ($possibleHeaderSets as $candidateHeaders) {
+        if ($header === $candidateHeaders) {
+            $matchedHeaders = $candidateHeaders;
+            break;
+        }
+    }
+
+    if ($matchedHeaders === null) {
         throw new RuntimeException('Header tidak sesuai template. Unduh template Excel dan jangan ubah nama atau urutan kolom.');
     }
 
     $result = [];
     foreach (array_slice($rows, 1) as $index => $cells) {
         $row = [];
-        foreach ($expectedHeaders as $offset => $key) {
+        foreach ($matchedHeaders as $offset => $key) {
             $row[$key] = $cells[$offset + 1] ?? '';
         }
         foreach (['jam_mulai', 'jam_selesai'] as $timeField) {

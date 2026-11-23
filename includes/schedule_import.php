@@ -52,6 +52,82 @@ function resolve_course_code(PDO $pdo, string $courseName, array &$cacheByLowerN
     return $candidate;
 }
 
+function clean_person_name(string $name): string
+{
+    // Hilangkan gelar umum seperti S.Kom., M.Kom., M.T., Dr., Prof., Ir., dll
+    $cleaned = preg_replace('/,.*$/', '', $name); // Hapus bagian setelah tanda koma (gelar belakang)
+    $cleaned = preg_replace('/^(dr\.|dra\.|drs\.|prof\.|ir\.)\s+/i', '', trim($cleaned)); // Hapus gelar depan
+    // Hapus tanda baca titik dan spasi berlebih
+    $cleaned = preg_replace('/[^\p{L}\p{N}\s]/u', '', $cleaned);
+    return mb_strtolower(trim((string)preg_replace('/\s+/', ' ', $cleaned)));
+}
+
+function find_lecturer_by_identifier(PDO $pdo, string $identifier): ?array
+{
+    $identifier = trim($identifier);
+    if ($identifier === '') {
+        return null;
+    }
+
+    // 1. Cek jika berupa email
+    if (filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
+        $stmt = $pdo->prepare(
+            "SELECT d.id, u.id AS user_id, u.nama, u.email, p.id_jurusan, d.id_prodi
+             FROM dosen d
+             JOIN users u ON u.id = d.user_id AND u.role = 'dosen'
+             JOIN program_studi p ON p.id = d.id_prodi
+             WHERE LOWER(u.email) = LOWER(:val)
+             LIMIT 1"
+        );
+        $stmt->execute([':val' => $identifier]);
+        $res = $stmt->fetch();
+        if ($res) {
+            return $res;
+        }
+    }
+
+    // 2. Cek kecocokan nama persis (case-insensitive)
+    $stmt = $pdo->prepare(
+        "SELECT d.id, u.id AS user_id, u.nama, u.email, p.id_jurusan, d.id_prodi
+         FROM dosen d
+         JOIN users u ON u.id = d.user_id AND u.role = 'dosen'
+         JOIN program_studi p ON p.id = d.id_prodi
+         WHERE LOWER(u.nama) = LOWER(:val)
+         LIMIT 1"
+    );
+    $stmt->execute([':val' => $identifier]);
+    $res = $stmt->fetch();
+    if ($res) {
+        return $res;
+    }
+
+    // 3. Cek kecocokan nama tanpa gelar / dibersihkan
+    $cleanInput = clean_person_name($identifier);
+    if ($cleanInput !== '') {
+        $stmtAll = $pdo->query(
+            "SELECT d.id, u.id AS user_id, u.nama, u.email, p.id_jurusan, d.id_prodi
+             FROM dosen d
+             JOIN users u ON u.id = d.user_id AND u.role = 'dosen'
+             JOIN program_studi p ON p.id = d.id_prodi"
+        );
+        $candidates = $stmtAll->fetchAll();
+        foreach ($candidates as $cand) {
+            if (clean_person_name($cand['nama']) === $cleanInput) {
+                return $cand;
+            }
+        }
+        // Cek kecocokan substring (jika nama di DB merupakan bagian dari nama di Excel atau sebaliknya)
+        foreach ($candidates as $cand) {
+            $candClean = clean_person_name($cand['nama']);
+            if ($candClean !== '' && (mb_strpos($cleanInput, $candClean) !== false || mb_strpos($candClean, $cleanInput) !== false)) {
+                return $cand;
+            }
+        }
+    }
+
+    return null;
+}
+
 function validate_schedule_import(PDO $pdo, array $rows, ?int $dosenScope, ?int $jurusanScope, ?int $prodiScope = null): array
 {
     $errors = [];
@@ -74,7 +150,10 @@ function validate_schedule_import(PDO $pdo, array $rows, ?int $dosenScope, ?int 
     foreach ($rows as $row) {
         $rowNumber = (int)($row['_row_number'] ?? 0);
         $value = static fn(string $key): string => trim((string)($row[$key] ?? ''));
-        $email = $value('email_dosen');
+        $lecturerIdentifier = $value('nama_dosen');
+        if ($lecturerIdentifier === '') {
+            $lecturerIdentifier = $value('email_dosen');
+        }
         $code = $value('kode_mk');
         $courseName = $value('nama_mk');
         $className = $value('nama_kelas');
@@ -82,18 +161,18 @@ function validate_schedule_import(PDO $pdo, array $rows, ?int $dosenScope, ?int 
         $semester = $value('semester');
         $academicYear = $value('tahun_ajaran');
         $term = $value('termin');
-        $day = $value('hari');
+        $day = ucfirst(mb_strtolower($value('hari')));
         $start = $value('jam_mulai');
         $end = $value('jam_selesai');
-        $sessionType = $value('tipe_sesi');
+        $sessionType = mb_strtolower($value('tipe_sesi'));
         $credits = $value('sks');
-        $mode = $value('mode');
+        $mode = mb_strtolower($value('mode'));
         $room = $value('ruang');
 
         $rowErrors = [];
         $courseKey = mb_strtolower($code);
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $rowErrors[] = 'email dosen tidak valid';
+        if ($lecturerIdentifier === '') {
+            $rowErrors[] = 'nama/email dosen wajib diisi';
         }
         if ($courseName === '' || strlen($courseName) > 150) {
             $rowErrors[] = 'nama mata kuliah wajib diisi (maksimal 150 karakter)';
@@ -154,20 +233,11 @@ function validate_schedule_import(PDO $pdo, array $rows, ?int $dosenScope, ?int 
                 $code = resolve_course_code($pdo, $courseName, $autoCourseCodes);
             }
 
-            $stmtLecturer = $pdo->prepare(
-                "SELECT d.id, u.id AS user_id, p.id_jurusan
-                 FROM dosen d
-                 JOIN users u ON u.id = d.user_id AND u.role = 'dosen'
-                 JOIN program_studi p ON p.id = d.id_prodi
-                 WHERE LOWER(u.email) = LOWER(:email)
-                 LIMIT 1"
-            );
-            $stmtLecturer->execute([':email' => $email]);
-            $lecturer = $stmtLecturer->fetch();
+            $lecturer = find_lecturer_by_identifier($pdo, $lecturerIdentifier);
             if (!$lecturer) {
-                $rowErrors[] = 'dosen tidak ditemukan';
+                $rowErrors[] = 'dosen "' . $lecturerIdentifier . '" tidak ditemukan';
             } elseif ($dosenScope !== null && (int)$lecturer['id'] !== $dosenScope) {
-                $rowErrors[] = 'file hanya boleh memuat email dosen yang sedang login';
+                $rowErrors[] = 'file hanya boleh memuat dosen yang sedang login';
             } elseif ($jurusanScope !== null && (int)$lecturer['id_jurusan'] !== $jurusanScope) {
                 $rowErrors[] = 'dosen berada di luar cakupan jurusan admin';
             }

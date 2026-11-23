@@ -36,7 +36,8 @@ try {
     $zip->close();
 
     $rows = schedule_xlsx_read($path);
-    if (count($rows) !== 1 || $rows[0]['email_dosen'] !== 'dosen1@example.test'
+    $dosenVal = $rows[0]['nama_dosen'] ?? $rows[0]['email_dosen'] ?? '';
+    if (count($rows) !== 1 || $dosenVal !== 'dosen1@example.test'
         || $rows[0]['jam_mulai'] !== '08:30' || $rows[0]['jam_selesai'] !== '09:30') {
         throw new RuntimeException('Shared strings or Excel time values were not parsed correctly.');
     }
